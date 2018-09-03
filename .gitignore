@@ -1,3 +1,12 @@
+# Build
+Binaries/
+Intermediate/
+
+# Visual Studio
+*.vs/
+*.suo
+*.user
+
 # Prerequisites
 *.d
 
