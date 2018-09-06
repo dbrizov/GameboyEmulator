@@ -1,8 +1,9 @@
 #include <iostream>
-
-using std::cout;
+#include "math.h"
+#include "BitUtil.h"
+#include "Logger.h"
 
 int main()
 {
-	cout << "Denis Rizov\n";
+	std::cin.get();
 }
