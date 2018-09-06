@@ -1,6 +1,6 @@
 #pragma once
 
-// Definition
+// Declaration
 class Logger
 {
 private:
@@ -21,7 +21,6 @@ public:
 };
 
 // Implementation
-
 bool Logger::_isEnabled = true;
 
 inline bool Logger::IsEnabled()

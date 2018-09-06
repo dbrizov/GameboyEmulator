@@ -134,6 +134,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Source\CPU.cpp" />
     <ClCompile Include="Source\Main.cpp" />
   </ItemGroup>
   <ItemGroup>
