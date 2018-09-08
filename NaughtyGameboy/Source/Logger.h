@@ -1,10 +1,12 @@
 #pragma once
 
-// Declaration
+#include <iostream>
+#include "stdio.h"
+
 class Logger
 {
 private:
-	static bool _isEnabled;
+	static bool m_isEnabled;
 
 private:
 	Logger();
@@ -17,26 +19,16 @@ public:
 	static void Log(TArg arg);
 
 	template<typename... TArgs>
-	static void LogFormat(const char* format, TArgs... args);
+	static void Log(const char* format, TArgs... args);
+
+	template<typename... TArgs>
+	static void LogError(const char* format, TArgs... args);
 };
 
-// Implementation
-bool Logger::_isEnabled = true;
-
-inline bool Logger::IsEnabled()
-{
-	return _isEnabled;
-}
-
-inline void Logger::SetEnabled(bool enabled)
-{
-	_isEnabled = enabled;
-}
-
 template<typename TArg>
-inline void Logger::Log(TArg arg)
+void Logger::Log(TArg arg)
 {
-	if (!_isEnabled)
+	if (!m_isEnabled)
 	{
 		return;
 	}
@@ -45,9 +37,9 @@ inline void Logger::Log(TArg arg)
 }
 
 template<typename... TArgs>
-inline void Logger::LogFormat(const char* format, TArgs... args)
+void Logger::Log(const char* format, TArgs... args)
 {
-	if (!_isEnabled)
+	if (!m_isEnabled)
 	{
 		return;
 	}
@@ -56,3 +48,16 @@ inline void Logger::LogFormat(const char* format, TArgs... args)
 	sprintf_s(buffer, format, args...);
 	std::cout << buffer << std::endl;
 }
+
+template<typename... TArgs>
+void Logger::LogError(const char* format, TArgs... args)
+{
+	if (!m_isEnabled)
+	{
+		return;
+	}
+
+	std::cout << "ERROR: ";
+	Log(format, args...);
+}
+

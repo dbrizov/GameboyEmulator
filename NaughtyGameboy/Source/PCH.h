@@ -1,5 +1,7 @@
 #pragma once
 
+#include <memory>
+
 #define ARRAY_SIZE(arr) (sizeof(arr) / sizeof(arr[0])) // Works only for arrays on the stack
 
 // byte and ushort are both unsigned shorts. The idea is to be human readable, but to eliminate type casting between them

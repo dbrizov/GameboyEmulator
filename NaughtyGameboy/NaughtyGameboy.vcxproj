@@ -135,12 +135,15 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Source\CPU.cpp" />
+    <ClCompile Include="Source\Logger.cpp" />
     <ClCompile Include="Source\Main.cpp" />
+    <ClCompile Include="Source\MMU.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\CPU.h" />
     <ClInclude Include="Source\BitUtil.h" />
     <ClInclude Include="Source\Logger.h" />
+    <ClInclude Include="Source\MMU.h" />
     <ClInclude Include="Source\PCH.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
