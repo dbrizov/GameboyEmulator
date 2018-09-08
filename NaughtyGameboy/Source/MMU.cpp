@@ -24,8 +24,8 @@ ushort MMU::ReadUShort(ushort address)
 	ushort lowByte = ReadByte(address);
 	ushort highByte = ReadByte(address + 1);
 	highByte = (highByte << 8);
-	ushort value = lowByte | highByte;
+	ushort value = highByte | lowByte;
 
-	return highByte | lowByte;
+	return value;
 }
 

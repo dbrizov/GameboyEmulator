@@ -1,5 +1,6 @@
 #include "CPU.h"
 #include "Logger.h"
+#include "BitUtil.h"
 
 const byte CPU::ZeroFlag = 7;
 const byte CPU::SubtractFlag = 6;
@@ -111,7 +112,90 @@ void CPU::InitInstructionMap()
 	m_instructionMap[0x00] = &CPU::NOP;
 }
 
-ulong CPU::NOP(byte opCode)
+byte* CPU::GetByteRegister_Src(byte opcode)
+{
+	return m_byteRegisterMap[opcode & 0x07];
+}
+
+byte* CPU::GetByteRegister_Dst(byte opcode)
+{
+	return m_byteRegisterMap[(opcode >> 3) & 0x07];
+}
+
+ushort* CPU::GetUShortRegister(byte opcode)
+{
+	return m_ushortRegisterMap[(opcode >> 4) & 0x03];
+}
+
+ulong CPU::LD_r_n(byte opcode)
+{
+	byte n = ReadBytePCI();
+	byte* r = GetByteRegister_Dst(opcode);
+	*r = n;
+
+	return 8;
+}
+
+ulong CPU::LD_r_R(byte opcode)
+{
+	byte* R = GetByteRegister_Src(opcode);
+	byte* r = GetByteRegister_Dst(opcode);
+	*r = *R;
+
+	return 4;
+}
+
+ulong CPU::LD_r_HL(byte opcode)
+{
+	byte value = m_MMU->ReadByte(m_HL);
+	byte* r = GetByteRegister_Dst(opcode);
+	*r = value;
+
+	return 8;
+}
+
+ulong CPU::LD_HL_r(byte opcode)
+{
+	byte* r = GetByteRegister_Src(opcode);
+	m_MMU->WriteByte(m_HL, *r);
+
+	return 8;
+}
+
+ulong CPU::LD_HL_n(byte opcode)
+{
+	byte n = ReadBytePCI();
+	m_MMU->WriteByte(m_HL, n);
+
+	return 12;
+}
+
+ulong CPU::LD_A_BC(byte opcode)
+{
+	byte value = m_MMU->ReadByte(m_BC);
+	SetHighByte(&m_AF, value);
+
+	return 8;
+}
+
+ulong CPU::LD_A_DE(byte opcode)
+{
+	byte value = m_MMU->ReadByte(m_DE);
+	SetHighByte(&m_AF, value);
+
+	return 8;
+}
+
+ulong CPU::LD_A_nn(byte opcode)
+{
+	ushort address = ReadUShortPCI();
+	byte value = m_MMU->ReadByte(address);
+	SetHighByte(&m_AF, value);
+
+	return 16;
+}
+
+ulong CPU::NOP(byte opcode)
 {
 	return 4;
 }
