@@ -195,7 +195,7 @@ byte CPU::AddBytes(byte b1, byte b2)
 	(result == 0x00) ? SetFlag(ZeroFlag) : ClearFlag(ZeroFlag);
 	ClearFlag(SubtractFlag);
 	(((b1 & 0x0F) + (b2 & 0x0F)) > 0x0F) ? SetFlag(HalfCarryFlag) : ClearFlag(HalfCarryFlag);
-	((b1 + b2) > 0xFF) ? SetFlag(CarryFlag) : ClearFlag(CarryFlag);
+	((int)(b1 + b2) > 0xFF) ? SetFlag(CarryFlag) : ClearFlag(CarryFlag);
 
 	return result;
 }
@@ -207,7 +207,31 @@ byte CPU::AddBytes(byte b1, byte b2, byte b3)
 	(result == 0x00) ? SetFlag(ZeroFlag) : ClearFlag(ZeroFlag);
 	ClearFlag(SubtractFlag);
 	(((b1 & 0x0F) + (b2 & 0x0F) + (b3 & 0x0F)) > 0x0F) ? SetFlag(HalfCarryFlag) : ClearFlag(HalfCarryFlag);
-	((b1 + b2 + b3) > 0xFF) ? SetFlag(CarryFlag) : ClearFlag(CarryFlag);
+	((int)(b1 + b2 + b3) > 0xFF) ? SetFlag(CarryFlag) : ClearFlag(CarryFlag);
+
+	return result;
+}
+
+byte CPU::SubtractBytes(byte b1, byte b2)
+{
+	byte result = b1 - b2;
+
+	(result == 0x00) ? SetFlag(ZeroFlag) : ClearFlag(ZeroFlag);
+	SetFlag(SubtractFlag);
+	((int)((b1 & 0x0F) - (b2 & 0x0F)) < 0x00) ? SetFlag(HalfCarryFlag) : ClearFlag(HalfCarryFlag);
+	((int)(b1 - b2) < 0x00) ? SetFlag(CarryFlag) : ClearFlag(CarryFlag);
+
+	return result;
+}
+
+byte CPU::SubtractBytes(byte b1, byte b2, byte b3)
+{
+	byte result = b1 - b2 - b3;
+
+	(result == 0x00) ? SetFlag(ZeroFlag) : ClearFlag(ZeroFlag);
+	SetFlag(SubtractFlag);
+	((int)((b1 & 0x0F) - (b2 & 0x0F) - (b3 & 0x0F)) < 0x00) ? SetFlag(HalfCarryFlag) : ClearFlag(HalfCarryFlag);
+	((int)(b1 - b2 - b3) < 0x00) ? SetFlag(CarryFlag) : ClearFlag(CarryFlag);
 
 	return result;
 }
@@ -468,6 +492,69 @@ ulong CPU::ADC_A_0xHL(byte opcode)
 	byte value = m_MMU->ReadByte(m_HL);
 	byte cf = GetFlag(CarryFlag);
 	byte result = AddBytes(A, value, cf);
+	SetHighByte(&m_AF, result);
+
+	return 8;
+}
+
+ulong CPU::SUB_A_r(byte opcode)
+{
+	byte A = GetHighByte(m_AF);
+	byte* r = GetByteRegister_Src(opcode);
+	byte result = SubtractBytes(A, *r);
+	SetHighByte(&m_AF, result);
+
+	return 4;
+}
+
+ulong CPU::SUB_A_n(byte opcode)
+{
+	byte A = GetHighByte(m_AF);
+	byte n = ReadBytePCI();
+	byte result = SubtractBytes(A, n);
+	SetHighByte(&m_AF, result);
+
+	return 8;
+}
+
+ulong CPU::SUB_A_0xHL(byte opcode)
+{
+	byte A = GetHighByte(m_AF);
+	byte value = m_MMU->ReadByte(m_HL);
+	byte result = SubtractBytes(A, value);
+	SetHighByte(&m_AF, result);
+
+	return 8;
+}
+
+ulong CPU::SBC_A_r(byte opcode)
+{
+	byte A = GetHighByte(m_AF);
+	byte* r = GetByteRegister_Src(opcode);
+	byte cf = GetFlag(CarryFlag);
+	byte result = SubtractBytes(A, *r, cf);
+	SetHighByte(&m_AF, result);
+
+	return 4;
+}
+
+ulong CPU::SBC_A_n(byte opcode)
+{
+	byte A = GetHighByte(m_AF);
+	byte n = ReadBytePCI();
+	byte cf = GetFlag(CarryFlag);
+	byte result = SubtractBytes(A, n, cf);
+	SetHighByte(&m_AF, result);
+
+	return 8;
+}
+
+ulong CPU::SBC_A_0xHL(byte opcode)
+{
+	byte A = GetHighByte(m_AF);
+	byte value = m_MMU->ReadByte(m_HL);
+	byte cf = GetFlag(CarryFlag);
+	byte result = SubtractBytes(A, value, cf);
 	SetHighByte(&m_AF, result);
 
 	return 8;

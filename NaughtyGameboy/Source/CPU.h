@@ -104,12 +104,24 @@ private:
 	/** Adds 3 bytes and sets/clears the flags in the F register */
 	byte AddBytes(byte b1, byte b2, byte b3);
 
+	/** Subtracts 2 bytes and sets/clears the flags in the F register */
+	byte SubtractBytes(byte b1, byte b2);
+
+	/** Subtracts 3 bytes and sets/clears the flags in the F register */
+	byte SubtractBytes(byte b1, byte b2, byte b3);
+
 	// ===============
 	// INSTRUCTION SET
 	// ===============
-	// NOTE: 0x in the method names means indirect addressing.
-	// 0xHL (HL) - the address pointed to by the HL register
-	// 0xFF00 (FF00) - the memory address FF00
+	// NOTES:
+	// - r - 8bit register
+	// - rr - 16bit register
+	// - n - the next 8bit data in memory
+	// - nn - the next 16 bit data in memory
+	// - 0x in the method names means indirect addressing.
+	// - 0xHL (HL) - the address pointed to by the HL register
+	// - 0xnn (nn) - the address pointed to by the next 16bit data in memory
+	// - 0xFF00 (FF00) - the memory address FF00
 	// ===============
 
 	// =======================
@@ -210,6 +222,33 @@ private:
 
 	/** A = A + (HL) + cf */
 	ulong ADC_A_0xHL(byte opcode);
+
+	/**
+	* A = A - r
+	* In all resource I've read it's "SUB r". The A is omitted. I've put it for consistency with the ADD instructions
+	*/
+	ulong SUB_A_r(byte opcode);
+
+	/**
+	* A = A - n
+	* In all resource I've read it's "SUB n". The A is omitted. I've put it for consistency with the ADD instructions
+	*/
+	ulong SUB_A_n(byte opcode);
+
+	/**
+	* A = A - (HL)
+	* In all resource I've read it's "SUB (HL)". The A is omitted. I've put it for consistency with the ADD instructions
+	*/
+	ulong SUB_A_0xHL(byte opcode);
+
+	/** A = A - r - cf */
+	ulong SBC_A_r(byte opcode);
+
+	/** A = A - n - cf */
+	ulong SBC_A_n(byte opcode);
+
+	/** A = A - (HL) - cf */
+	ulong SBC_A_0xHL(byte opcode);
 
 	// ==================
 	// Control instructions
