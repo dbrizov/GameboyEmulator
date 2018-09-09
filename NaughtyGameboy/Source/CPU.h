@@ -7,12 +7,24 @@ class CPU
 {
 private:
 	// The Flag Register(lower 8bit of AF register)
-	// Bit  Name  Set Clr  Expl.
-	// 7    Z     Z   NZ   Zero Flag
-	// 6    N     -   -    Add / Sub - Flag (BCD)
-	// 5    H     -   -    Half Carry Flag(BCD)
-	// 4    C     C   NC   Carry Flag
-	// 3-0  -     -   -    Not used(always zero)
+	// Bit  Name  Set  Clr  Expl.
+	// 7    z(zf) Z    NZ   Zero Flag
+	// 6    n     -    -    Add / Sub - Flag (BCD)
+	// 5    h     -    -    Half Carry Flag(BCD)
+	// 4    c(cf) C    NC   Carry Flag
+	// 3-0  -     -    -    Not used(always zero)
+
+	// The Zero Flag(Z)
+	// This bit becomes set(1) if the result of an operation has been zero(0).Used for conditional jumps.
+
+	// The Carry Flag(C, or Cy)
+	// Becomes set when the result of an addition became bigger than FFh(8bit) or FFFFh(16bit).Or when the result of a subtraction or comparision became less than zero(much as for Z80 and 80x86 CPUs, but unlike as for 65XX and ARM CPUs).Also the flag becomes set when a rotate / shift operation has shifted - out a "1" - bit.
+	// Used for conditional jumps, and for instructions such like ADC, SBC, RL, RLA, etc.
+
+	// The BCD Flags(N, H)
+	// These flags are(rarely) used for the DAA instruction only, N Indicates whether the previous instruction has been an addition or subtraction, and H indicates carry for lower 4bits of the result, also for DAA, the C flag must indicate carry for upper 8bits.
+	// After adding / subtracting two BCD numbers, DAA is intended to convert the result into BCD format; BCD numbers are ranged from 00h to 99h rather than 00h to FFh.
+	// Because C and H flags must contain carry - outs for each digit, DAA cannot be used for 16bit operations(which have 4 digits), or for INC / DEC operations(which do not affect C - flag).
 	static const byte ZeroFlag;
 	static const byte SubtractFlag;
 	static const byte HalfCarryFlag;
@@ -74,8 +86,23 @@ private:
 	/** Pop 1 ushort from the stack */
 	ushort PopUShortFromStack();
 
+	/** Get a flag in the F register */
+	byte GetFlag(byte flag);
+
+	/** Set a flag in the F register */
+	void SetFlag(byte flag);
+
+	/** Clear a flag in the F register */
+	void ClearFlag(byte flag);
+
+	/** Checks if a flag in the F register is set (1) */
+	bool IsFlagSet(byte flag);
+
 	/** Adds 2 bytes and sets/clears the flags in the F register */
-	byte AddByte(byte b1, byte b2);
+	byte AddBytes(byte b1, byte b2);
+
+	/** Adds 3 bytes and sets/clears the flags in the F register */
+	byte AddBytes(byte b1, byte b2, byte b3);
 
 	// ===============
 	// INSTRUCTION SET
@@ -166,8 +193,23 @@ private:
 	// 8bit arithmetic/logical instructions
 	// =====================================
 
-	/** A = A + r (r - 8bit register) */
+	/** A = A + r */
 	ulong ADD_A_r(byte opcode);
+
+	/** A = A + n */
+	ulong ADD_A_n(byte opcode);
+
+	/** A = A + (HL) */
+	ulong ADD_A_0xHL(byte opcode);
+
+	/** A = A + r + cf */
+	ulong ADC_A_r(byte opcode);
+
+	/** A = A + n + cf */
+	ulong ADC_A_n(byte opcode);
+
+	/** A = A + (HL) + cf */
+	ulong ADC_A_0xHL(byte opcode);
 
 	// ==================
 	// Control instructions

@@ -2,20 +2,10 @@
 
 #include "PCH.h"
 
-inline bool IsBitSet(ushort value, ushort bit)
-{
-	return (((value >> bit) & 1) == 1);
-}
-
-inline ushort SetBit(ushort value, ushort bit)
-{
-	return (value | (1 << bit));
-}
-
-inline ushort ClearBit(ushort value, ushort bit)
-{
-	return (value & ~(1 << bit));
-}
+#define GET_BIT(value, bit) ((value >> bit) & 1)
+#define SET_BIT(value, bit) (value | (1 << bit))
+#define CLEAR_BIT(value, bit) (value & ~(1 << bit))
+#define IS_BIT_SET(value, bit) (((value >> bit) & 1) == 1)
 
 inline byte GetLowByte(ushort src)
 {

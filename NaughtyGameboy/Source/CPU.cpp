@@ -162,6 +162,56 @@ ushort CPU::PopUShortFromStack()
 	return value;
 }
 
+byte CPU::GetFlag(byte flag)
+{
+	byte F = GetLowByte(m_AF);
+	return GET_BIT(F, flag);
+}
+
+void CPU::SetFlag(byte flag)
+{
+	byte F = GetLowByte(m_AF);
+	F = SET_BIT(F, flag);
+	SetLowByte(&m_AF, F);
+}
+
+void CPU::ClearFlag(byte flag)
+{
+	byte F = GetLowByte(m_AF);
+	F = CLEAR_BIT(F, flag);
+	SetLowByte(&m_AF, F);
+}
+
+bool CPU::IsFlagSet(byte flag)
+{
+	byte F = GetLowByte(m_AF);
+	return IS_BIT_SET(F, flag);
+}
+
+byte CPU::AddBytes(byte b1, byte b2)
+{
+	byte result = b1 + b2;
+
+	(result == 0x00) ? SetFlag(ZeroFlag) : ClearFlag(ZeroFlag);
+	ClearFlag(SubtractFlag);
+	(((b1 & 0x0F) + (b2 & 0x0F)) > 0x0F) ? SetFlag(HalfCarryFlag) : ClearFlag(HalfCarryFlag);
+	((b1 + b2) > 0xFF) ? SetFlag(CarryFlag) : ClearFlag(CarryFlag);
+
+	return result;
+}
+
+byte CPU::AddBytes(byte b1, byte b2, byte b3)
+{
+	byte result = b1 + b2 + b3;
+
+	(result == 0x00) ? SetFlag(ZeroFlag) : ClearFlag(ZeroFlag);
+	ClearFlag(SubtractFlag);
+	(((b1 & 0x0F) + (b2 & 0x0F) + (b3 & 0x0F)) > 0x0F) ? SetFlag(HalfCarryFlag) : ClearFlag(HalfCarryFlag);
+	((b1 + b2 + b3) > 0xFF) ? SetFlag(CarryFlag) : ClearFlag(CarryFlag);
+
+	return result;
+}
+
 ulong CPU::LD_r_n(byte opcode)
 {
 	byte n = ReadBytePCI();
@@ -358,6 +408,69 @@ ulong CPU::POP_rr(byte opcode)
 	*rr = value;
 
 	return 12;
+}
+
+ulong CPU::ADD_A_r(byte opcode)
+{
+	byte A = GetHighByte(m_AF);
+	byte* r = GetByteRegister_Src(opcode);
+	byte result = AddBytes(A, *r);
+	SetHighByte(&m_AF, result);
+
+	return 4;
+}
+
+ulong CPU::ADD_A_n(byte opcode)
+{
+	byte A = GetHighByte(m_AF);
+	byte n = ReadBytePCI();
+	byte result = AddBytes(A, n);
+	SetHighByte(&m_AF, result);
+
+	return 8;
+}
+
+ulong CPU::ADD_A_0xHL(byte opcode)
+{
+	byte A = GetHighByte(m_AF);
+	byte value = m_MMU->ReadByte(m_HL);
+	byte result = AddBytes(A, value);
+	SetHighByte(&m_AF, result);
+
+	return 8;
+}
+
+ulong CPU::ADC_A_r(byte opcode)
+{
+	byte A = GetHighByte(m_AF);
+	byte* r = GetByteRegister_Src(opcode);
+	byte cf = GetFlag(CarryFlag);
+	byte result = AddBytes(A, *r, cf);
+	SetHighByte(&m_AF, result);
+
+	return 4;
+}
+
+ulong CPU::ADC_A_n(byte opcode)
+{
+	byte A = GetHighByte(m_AF);
+	byte n = ReadBytePCI();
+	byte cf = GetFlag(CarryFlag);
+	byte result = AddBytes(A, n, cf);
+	SetHighByte(&m_AF, result);
+
+	return 8;
+}
+
+ulong CPU::ADC_A_0xHL(byte opcode)
+{
+	byte A = GetHighByte(m_AF);
+	byte value = m_MMU->ReadByte(m_HL);
+	byte cf = GetFlag(CarryFlag);
+	byte result = AddBytes(A, value, cf);
+	SetHighByte(&m_AF, result);
+
+	return 8;
 }
 
 ulong CPU::NOP(byte opcode)
