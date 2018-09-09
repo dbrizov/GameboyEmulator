@@ -84,7 +84,7 @@ ulong CPU::Step()
 byte CPU::ReadBytePCI()
 {
 	byte value = m_MMU->ReadByte(m_PC);
-	m_PC++;
+	m_PC += 1;
 
 	return value;
 }
@@ -127,6 +127,41 @@ ushort* CPU::GetUShortRegister(byte opcode)
 	return m_ushortRegisterMap[(opcode >> 4) & 0x03];
 }
 
+void CPU::PushByteToStack(byte value)
+{
+	// The stack is in range FF80-FFFE where FFFE is the bottom of the stack, and FF80 is the maximum top of the stack
+	// So in order to push something to the stack we need to decrement the stack pointer first
+	m_SP -= 1;
+	m_MMU->WriteByte(m_SP, value);
+}
+
+void CPU::PushUShortToStack(ushort value)
+{
+	// The stack is in range FF80-FFFE where FFFE is the bottom of the stack, and FF80 is the maximum top of the stack
+	// So in order to push something to the stack we need to decrement the stack pointer first
+	m_SP -= 2;
+	m_MMU->WriteUShort(m_SP, value);
+}
+
+byte CPU::PopByteFromStack()
+{
+	// The stack is in range FF80-FFFE where FFFE is the bottom of the stack, and FF80 is the maximum top of the stack
+	// So in order to pop something from the stack we need to increase the stack pointer after we read the data from it
+	byte value = m_MMU->ReadByte(m_SP);
+	m_SP += 1;
+
+	return value;
+}
+
+ushort CPU::PopUShortFromStack()
+{
+	// We pop the low byte first, and the high byte second, becasuse in memory the low byte comes first (the CPU is low-endian)
+	ushort value = m_MMU->ReadUShort(m_SP);
+	m_SP += 2;
+	
+	return value;
+}
+
 ulong CPU::LD_r_n(byte opcode)
 {
 	byte n = ReadBytePCI();
@@ -145,7 +180,7 @@ ulong CPU::LD_r_R(byte opcode)
 	return 4;
 }
 
-ulong CPU::LD_r_HL(byte opcode)
+ulong CPU::LD_r_0xHL(byte opcode)
 {
 	byte value = m_MMU->ReadByte(m_HL);
 	byte* r = GetByteRegister_Dst(opcode);
@@ -154,7 +189,7 @@ ulong CPU::LD_r_HL(byte opcode)
 	return 8;
 }
 
-ulong CPU::LD_HL_r(byte opcode)
+ulong CPU::LD_0xHL_r(byte opcode)
 {
 	byte* r = GetByteRegister_Src(opcode);
 	m_MMU->WriteByte(m_HL, *r);
@@ -162,7 +197,7 @@ ulong CPU::LD_HL_r(byte opcode)
 	return 8;
 }
 
-ulong CPU::LD_HL_n(byte opcode)
+ulong CPU::LD_0xHL_n(byte opcode)
 {
 	byte n = ReadBytePCI();
 	m_MMU->WriteByte(m_HL, n);
@@ -170,7 +205,7 @@ ulong CPU::LD_HL_n(byte opcode)
 	return 12;
 }
 
-ulong CPU::LD_A_BC(byte opcode)
+ulong CPU::LD_A_0xBC(byte opcode)
 {
 	byte value = m_MMU->ReadByte(m_BC);
 	SetHighByte(&m_AF, value);
@@ -178,7 +213,7 @@ ulong CPU::LD_A_BC(byte opcode)
 	return 8;
 }
 
-ulong CPU::LD_A_DE(byte opcode)
+ulong CPU::LD_A_0xDE(byte opcode)
 {
 	byte value = m_MMU->ReadByte(m_DE);
 	SetHighByte(&m_AF, value);
@@ -186,13 +221,143 @@ ulong CPU::LD_A_DE(byte opcode)
 	return 8;
 }
 
-ulong CPU::LD_A_nn(byte opcode)
+ulong CPU::LD_A_0xnn(byte opcode)
 {
-	ushort address = ReadUShortPCI();
-	byte value = m_MMU->ReadByte(address);
+	ushort nn = ReadUShortPCI();
+	byte value = m_MMU->ReadByte(nn);
 	SetHighByte(&m_AF, value);
 
 	return 16;
+}
+
+ulong CPU::LD_0xBC_A(byte opcode)
+{
+	byte A = GetHighByte(m_AF);
+	m_MMU->WriteByte(m_BC, A);
+
+	return 8;
+}
+
+ulong CPU::LD_0xDE_A(byte opcode)
+{
+	byte A = GetHighByte(m_AF);
+	m_MMU->WriteByte(m_DE, A);
+
+	return 8;
+}
+
+ulong CPU::LD_0xnn_A(byte opcode)
+{
+	byte A = GetHighByte(m_AF);
+	ushort nn = ReadUShortPCI();
+	m_MMU->WriteByte(nn, A);
+
+	return 16;
+}
+
+ulong CPU::LD_A_0xFF00n(byte opcode)
+{
+	byte n = ReadBytePCI();
+	byte value = m_MMU->ReadByte(0xFF00 + n);
+	SetHighByte(&m_AF, value);
+
+	return 12;
+}
+
+ulong CPU::LD_0xFF00n_A(byte opcode)
+{
+	byte A = GetHighByte(m_AF);
+	byte n = ReadBytePCI();
+	m_MMU->WriteByte(0xFF00 + n, A);
+
+	return 12;
+}
+
+ulong CPU::LD_A_0xFF00C(byte opcode)
+{
+	byte C = GetLowByte(m_BC);
+	byte value = m_MMU->ReadByte(0xFF00 + C);
+	SetHighByte(&m_AF, value);
+
+	return 8;
+}
+
+ulong CPU::LD_0xFF00C_A(byte opcode)
+{
+	byte A = GetHighByte(m_AF);
+	byte C = GetLowByte(m_BC);
+	m_MMU->WriteByte(0xFF00 + C, A);
+
+	return 8;
+}
+
+ulong CPU::LDI_0xHL_A(byte opcode)
+{
+	byte A = GetHighByte(m_AF);
+	m_MMU->WriteByte(m_HL, A);
+	m_HL++;
+
+	return 8;
+}
+
+ulong CPU::LDI_A_0xHL(byte opcode)
+{
+	byte value = m_MMU->ReadByte(m_HL);
+	SetHighByte(&m_AF, value);
+	m_HL++;
+
+	return 8;
+}
+
+ulong CPU::LDD_0xHL_A(byte opcode)
+{
+	byte A = GetHighByte(m_AF);
+	m_MMU->WriteByte(m_HL, A);
+	m_HL--;
+
+	return 8;
+}
+
+ulong CPU::LDD_A_0xHL(byte opcode)
+{
+	byte value = m_MMU->ReadByte(m_HL);
+	SetHighByte(&m_AF, value);
+	m_HL--;
+
+	return 8;
+}
+
+ulong CPU::LD_rr_nn(byte opcode)
+{
+	ushort nn = ReadUShortPCI();
+	ushort* rr = GetUShortRegister(opcode);
+	*rr = nn;
+
+	return 12;
+}
+
+ulong CPU::LD_SP_HL(byte opcode)
+{
+	m_SP = m_HL;
+
+	return 8;
+}
+
+ulong CPU::PUSH_rr(byte opcode)
+{
+	ushort* rr = GetUShortRegister(opcode);
+	PushUShortToStack(*rr);
+
+	return 16;
+}
+
+ulong CPU::POP_rr(byte opcode)
+{
+	ushort* rr = GetUShortRegister(opcode);
+	ushort value = PopUShortFromStack();
+	*rr = value;
+
+	return 12;
 }
 
 ulong CPU::NOP(byte opcode)

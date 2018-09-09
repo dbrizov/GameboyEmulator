@@ -14,4 +14,5 @@ public:
 	void WriteByte(ushort address, byte value);
 	
 	ushort ReadUShort(ushort address);
+	void WriteUShort(ushort address, ushort value);
 };

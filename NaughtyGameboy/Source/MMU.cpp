@@ -1,4 +1,5 @@
 #include "MMU.h"
+#include "BitUtil.h"
 
 MMU::MMU()
 {
@@ -29,3 +30,11 @@ ushort MMU::ReadUShort(ushort address)
 	return value;
 }
 
+void MMU::WriteUShort(ushort address, ushort value)
+{
+	// The lowByte comes first in memory, because the CPU is low-endian
+	byte lowByte = GetLowByte(value);
+	WriteByte(address, lowByte);
+	byte highByte = GetHighByte(value);
+	WriteByte(address + 1, highByte);
+}
