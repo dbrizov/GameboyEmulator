@@ -8,11 +8,11 @@ class CPU
 private:
 	// The Flag Register(lower 8bit of AF register)
 	// Bit  Name  Set Clr  Expl.
-	// 7    zf    Z   NZ   Zero Flag
-	// 6    n - -Add / Sub  Flag(BCD)
-	// 5    h - -Half Carry Flag(BCD)
-	// 4    cy    C   NC   Carry Flag
-	// 3-0  Not used(always zero)
+	// 7    Z     Z   NZ   Zero Flag
+	// 6    N     -   -    Add / Sub - Flag (BCD)
+	// 5    H     -   -    Half Carry Flag(BCD)
+	// 4    C     C   NC   Carry Flag
+	// 3-0  -     -   -    Not used(always zero)
 	static const byte ZeroFlag;
 	static const byte SubtractFlag;
 	static const byte HalfCarryFlag;
@@ -29,8 +29,8 @@ private:
 	ushort m_SP; // Stack pointer
 	ushort m_PC; // Program counter
 
-	byte* m_byteRegisterMap[0x08]; // For easy access to the 8-bit registers (A, B, C, D, E, H, L). F is not used
-	ushort* m_ushortRegisterMap[0x04]; // For easy access to the 16-bit registers (BC, DE, HL, SP)
+	byte* m_byteRegisterMap[0x08]; // For easy access to the 8bit registers (A, B, C, D, E, H, L). F is not used
+	ushort* m_ushortRegisterMap[0x04]; // For easy access to the 16bit registers (BC, DE, HL, SP)
 
 	std::unique_ptr<MMU> m_MMU;
 
@@ -45,21 +45,21 @@ public:
 	ulong Step();
 
 private:
-	/** Read 1 byte and increment the PC by 1 */
+	/** Read 1 byte and increment PC by 1 */
 	byte ReadBytePCI();
 
-	/** Read 1 ushort and increment the PC by 2 */
+	/** Read 2 bytes and increment PC by 2 */
 	ushort ReadUShortPCI();
 
 	void InitInstructionMap();
 
-	/** Get an 8-bit source register mapped to an opcode */
+	/** Get an 8bit source register mapped to an opcode */
 	byte* GetByteRegister_Src(byte opcode);
 
-	/** Get an 8-bit destination register mapped to an opcode  */
+	/** Get an 8bit destination register mapped to an opcode  */
 	byte* GetByteRegister_Dst(byte opcode);
 
-	/** Get a 16-bit register mapped to an opcode */
+	/** Get a 16bit register mapped to an opcode */
 	ushort* GetUShortRegister(byte opcode);
 
 	/** Push 1 byte to the stack */
@@ -74,28 +74,31 @@ private:
 	/** Pop 1 ushort from the stack */
 	ushort PopUShortFromStack();
 
+	/** Adds 2 bytes and sets/clears the flags in the F register */
+	byte AddByte(byte b1, byte b2);
+
 	// ===============
 	// INSTRUCTION SET
 	// ===============
-	// NOTE: 0x in the methods names means indirect addressing.
-	// 0xHL - the address pointed to by the HL register
-	// 0xFF00 - the memory address (FF00)
+	// NOTE: 0x in the method names means indirect addressing.
+	// 0xHL (HL) - the address pointed to by the HL register
+	// 0xFF00 (FF00) - the memory address FF00
 	// ===============
 
 	// =======================
-	// 8-bit load instructions
+	// 8bit load instructions
 	// =======================
 
-	/** Load 8-bit register R into 8-bit register r */
+	/** Load 8bit register R into 8bit register r */
 	ulong LD_r_R(byte opcode);
 
-	/** Load byte n into 8-bit register r */
+	/** Load byte n into 8bit register r */
 	ulong LD_r_n(byte opcode);
 
-	/** Load the byte at address (HL) into 8-bit register r */
+	/** Load the byte at address (HL) into 8bit register r */
 	ulong LD_r_0xHL(byte opcode);
 
-	/** Load 8-bit register r into address (HL) */
+	/** Load 8bit register r into address (HL) */
 	ulong LD_0xHL_r(byte opcode);
 
 	/** Load byte n into address (HL) */
@@ -144,20 +147,27 @@ private:
 	ulong LDD_A_0xHL(byte opcode);
 
 	// =======================
-	// 16-bit load instruction
+	// 16bit load instruction
 	// =======================
 
-	/** Load ushort nn into 16-bit register rr */
+	/** Load ushort nn into 16bit register rr */
 	ulong LD_rr_nn(byte opcode);
 
 	/** Load register HL into register SP */
 	ulong LD_SP_HL(byte opcode);
 
-	/** Push 16-bit register rr into the stack */
+	/** Push 16bit register rr into the stack */
 	ulong PUSH_rr(byte opcode);
 
-	/** Pop 2 bytes from the stack and load them into 16-bit register rr */
+	/** Pop 2 bytes from the stack and load them into 16bit register rr */
 	ulong POP_rr(byte opcode);
+
+	// =====================================
+	// 8bit arithmetic/logical instructions
+	// =====================================
+
+	/** A = A + r (r - 8bit register) */
+	ulong ADD_A_r(byte opcode);
 
 	// ==================
 	// Control instructions

@@ -29,12 +29,12 @@ inline byte GetHighByte(ushort src)
 
 inline void SetLowByte(ushort* dst, byte value)
 {
-	byte high = GetHighByte(*dst);
+	ushort high = GetHighByte(*dst);
 	*dst = (high << 8) | value;
 }
 
 inline void SetHighByte(ushort* dst, byte value)
 {
-	byte low = GetLowByte(*dst);
+	ushort low = GetLowByte(*dst);
 	*dst = (value << 8) | low;
 }

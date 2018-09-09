@@ -26,7 +26,7 @@ CPU::CPU() :
 	// L = 101
 	// F = 110 - unused
 	// A = 111
-	m_byteRegisterMap[0x00] = reinterpret_cast<byte*>(&m_BC) + 1; // Because the Z80 CPU is low-endian, a 16-bit address 0x[B][C] in the memory is [C][B]. The low byte comes first
+	m_byteRegisterMap[0x00] = reinterpret_cast<byte*>(&m_BC) + 1; // Because the Z80 CPU is low-endian, a 16bit address 0x[B][C] in the memory is [C][B]. The low byte comes first
 	m_byteRegisterMap[0x01] = reinterpret_cast<byte*>(&m_BC);
 	m_byteRegisterMap[0x02] = reinterpret_cast<byte*>(&m_DE) + 1;
 	m_byteRegisterMap[0x03] = reinterpret_cast<byte*>(&m_DE);
@@ -35,7 +35,7 @@ CPU::CPU() :
 	m_byteRegisterMap[0x06] = reinterpret_cast<byte*>(&m_AF); // Should not be used (F)
 	m_byteRegisterMap[0x07] = reinterpret_cast<byte*>(&m_AF) + 1;
 	
-	// In binary ##rr####, where rr is a 16-bit register
+	// In binary ##rr####, where rr is a 16bit register
 	// -------
 	// 00 = BC
 	// 01 = DE
@@ -56,26 +56,26 @@ ulong CPU::Step()
 	ulong cycles = 0;
 
 	ushort address = m_PC;
-	byte opCode = ReadBytePCI();
+	byte opcode = ReadBytePCI();
 	InstructionFunction instruction = nullptr;
 
-	if (opCode == 0xCB)
+	if (opcode == 0xCB)
 	{
-		opCode = ReadBytePCI();
-		instruction = m_instructionMapCB[opCode];
+		opcode = ReadBytePCI();
+		instruction = m_instructionMapCB[opcode];
 	}
 	else
 	{
-		instruction = m_instructionMap[opCode];
+		instruction = m_instructionMap[opcode];
 	}
 
 	if (instruction != nullptr)
 	{
-		cycles = (this->*instruction)(opCode);
+		cycles = (this->*instruction)(opcode);
 	}
 	else
 	{
-		Logger::LogError("OpCode 0x%02X at address 0x%04X could not be interpreted.", opCode, address);
+		Logger::LogError("OpCode 0x%02X at address 0x%04X could not be interpreted.", opcode, address);
 	}
 
 	return cycles;
@@ -84,7 +84,7 @@ ulong CPU::Step()
 byte CPU::ReadBytePCI()
 {
 	byte value = m_MMU->ReadByte(m_PC);
-	m_PC += 1;
+	m_PC++;
 
 	return value;
 }
@@ -131,7 +131,7 @@ void CPU::PushByteToStack(byte value)
 {
 	// The stack is in range FF80-FFFE where FFFE is the bottom of the stack, and FF80 is the maximum top of the stack
 	// So in order to push something to the stack we need to decrement the stack pointer first
-	m_SP -= 1;
+	m_SP--;
 	m_MMU->WriteByte(m_SP, value);
 }
 
@@ -148,7 +148,7 @@ byte CPU::PopByteFromStack()
 	// The stack is in range FF80-FFFE where FFFE is the bottom of the stack, and FF80 is the maximum top of the stack
 	// So in order to pop something from the stack we need to increase the stack pointer after we read the data from it
 	byte value = m_MMU->ReadByte(m_SP);
-	m_SP += 1;
+	m_SP++;
 
 	return value;
 }
