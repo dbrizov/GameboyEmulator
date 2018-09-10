@@ -828,26 +828,26 @@ Example:
 	If an addition operation is performed between 15 (BCD) and 27 (BCD), simple decimal
 	arithmetic gives this result:
 
-	15
-  + 27
+	  15
+	+ 27
 	----
-	42
+	  42
 
 	But when the binary representations are added in the Accumulator according to
 	standard binary arithmetic:
 
-	0001 0101  15
-  + 0010 0111  27
-	-------------- -
-	0011 1100  3C
+	  0001 0101  15
+	+ 0010 0111  27
+	---------------
+	  0011 1100  3C
 
 	The sum is ambiguous. The DAA instruction adjusts this result so that correct
 	BCD representation is obtained:
 
-	0011 1100  3C result
-  + 0000 0110  06 + error
-	-------------- -
-	0100 0010  42 Correct BCD!
+	  0011 1100  3C result
+	+ 0000 0110  06 + error
+	---------------
+	  0100 0010  42 Correct BCD!
 */
 ulong CPU::DAA(byte opcode)
 {
