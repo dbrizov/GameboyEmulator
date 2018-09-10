@@ -801,8 +801,8 @@ This instruction conditionally adjusts the accumulator for BCD (binary coded dec
 and subtraction operations. For addition(ADD, ADC, INC) or subtraction
 (SUB, SBC, DEC, NEC), the following table indicates the operation performed :
 
-N   C   Value of     H  Value of     Hex no   C flag after
-		high nibble     low nibble   added    execution
+N   C  Value of      H  Value of     Hex no   C flag after
+       high nibble      low nibble   added    execution
 
 0   0      0-9       0     0-9       00       0
 0   0      0-8       0     A-F       06       0
