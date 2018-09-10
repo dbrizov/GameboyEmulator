@@ -114,7 +114,7 @@ private:
 	// INSTRUCTION SET
 	// ===============
 	// NOTES:
-	// - r - 8bit register
+	// - r/R - 8bit register
 	// - rr - 16bit register
 	// - n - the next 8bit data in memory
 	// - nn - the next 16 bit data in memory
@@ -225,19 +225,19 @@ private:
 
 	/**
 	* A = A - r
-	* In all resource I've read it's "SUB r". The A is omitted. I've put it for consistency with the ADD instructions
+	* In all resources I've read it's "SUB r". The A is omitted. I've put it for consistency with the ADD instructions
 	*/
 	ulong SUB_A_r(byte opcode);
 
 	/**
 	* A = A - n
-	* In all resource I've read it's "SUB n". The A is omitted. I've put it for consistency with the ADD instructions
+	* In all resources I've read it's "SUB n". The A is omitted. I've put it for consistency with the ADD instructions
 	*/
 	ulong SUB_A_n(byte opcode);
 
 	/**
 	* A = A - (HL)
-	* In all resource I've read it's "SUB (HL)". The A is omitted. I've put it for consistency with the ADD instructions
+	* In all resources I've read it's "SUB (HL)". The A is omitted. I've put it for consistency with the ADD instructions
 	*/
 	ulong SUB_A_0xHL(byte opcode);
 
@@ -249,6 +249,33 @@ private:
 
 	/** A = A - (HL) - cf */
 	ulong SBC_A_0xHL(byte opcode);
+	
+	/** A = A & r */
+	ulong AND_r(byte opcode);
+
+	/** A = A & n */
+	ulong AND_n(byte opcode);
+
+	/** A = A & (HL) */
+	ulong AND_0xHL(byte opcode);
+
+	/** A = A ^ r */
+	ulong XOR_r(byte opcode);
+
+	/** A = A ^ n */
+	ulong XOR_n(byte opcode);
+
+	/** A = A ^ (HL) */
+	ulong XOR_0xHL(byte opcode);
+
+	/** A = A | r */
+	ulong OR_r(byte opcode);
+
+	/** A = A | n */
+	ulong OR_n(byte opcode);
+
+	/** A = A | (HL) */
+	ulong OR_0xHL(byte opcode);
 
 	// ==================
 	// Control instructions

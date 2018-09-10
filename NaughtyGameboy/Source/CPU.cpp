@@ -560,6 +560,141 @@ ulong CPU::SBC_A_0xHL(byte opcode)
 	return 8;
 }
 
+ulong CPU::AND_r(byte opcode)
+{
+	byte A = GetHighByte(m_AF);
+	byte* r = GetByteRegister_Src(opcode);
+	byte result = A & *r;
+	SetHighByte(&m_AF, result);
+
+	(result == 0x00) ? SetFlag(ZeroFlag) : ClearFlag(ZeroFlag);
+	ClearFlag(SubtractFlag);
+	SetFlag(HalfCarryFlag);
+	ClearFlag(CarryFlag);
+
+	return 4;
+}
+
+ulong CPU::AND_n(byte opcode)
+{
+	byte A = GetHighByte(m_AF);
+	byte n = ReadBytePCI();
+	byte result = A & n;
+	SetHighByte(&m_AF, result);
+
+	(result == 0x00) ? SetFlag(ZeroFlag) : ClearFlag(ZeroFlag);
+	ClearFlag(SubtractFlag);
+	SetFlag(HalfCarryFlag);
+	ClearFlag(CarryFlag);
+
+	return 8;
+}
+
+ulong CPU::AND_0xHL(byte opcode)
+{
+	byte A = GetHighByte(m_AF);
+	byte value = m_MMU->ReadByte(m_HL);
+	byte result = A & value;
+	SetHighByte(&m_AF, result);
+
+	(result == 0x00) ? SetFlag(ZeroFlag) : ClearFlag(ZeroFlag);
+	ClearFlag(SubtractFlag);
+	SetFlag(HalfCarryFlag);
+	ClearFlag(CarryFlag);
+
+	return 8;
+}
+
+ulong CPU::XOR_r(byte opcode)
+{
+	byte A = GetHighByte(m_AF);
+	byte* r = GetByteRegister_Src(opcode);
+	byte result = A ^ *r;
+	SetHighByte(&m_AF, result);
+
+	(result == 0x00) ? SetFlag(ZeroFlag) : ClearFlag(ZeroFlag);
+	ClearFlag(SubtractFlag);
+	ClearFlag(HalfCarryFlag);
+	ClearFlag(CarryFlag);
+
+	return 4;
+}
+
+ulong CPU::XOR_n(byte opcode)
+{
+	byte A = GetHighByte(m_AF);
+	byte n = ReadBytePCI();
+	byte result = A ^ n;
+	SetHighByte(&m_AF, result);
+
+	(result == 0x00) ? SetFlag(ZeroFlag) : ClearFlag(ZeroFlag);
+	ClearFlag(SubtractFlag);
+	ClearFlag(HalfCarryFlag);
+	ClearFlag(CarryFlag);
+
+	return 8;
+}
+
+ulong CPU::XOR_0xHL(byte opcode)
+{
+	byte A = GetHighByte(m_AF);
+	byte value = m_MMU->ReadByte(m_HL);
+	byte result = A ^ value;
+	SetHighByte(&m_AF, result);
+
+	(result == 0x00) ? SetFlag(ZeroFlag) : ClearFlag(ZeroFlag);
+	ClearFlag(SubtractFlag);
+	ClearFlag(HalfCarryFlag);
+	ClearFlag(CarryFlag);
+
+	return 8;
+}
+
+ulong CPU::OR_r(byte opcode)
+{
+	byte A = GetHighByte(m_AF);
+	byte* r = GetByteRegister_Src(opcode);
+	byte result = A | *r;
+	SetHighByte(&m_AF, result);
+
+	(result == 0x00) ? SetFlag(ZeroFlag) : ClearFlag(ZeroFlag);
+	ClearFlag(SubtractFlag);
+	ClearFlag(HalfCarryFlag);
+	ClearFlag(CarryFlag);
+
+	return 4;
+}
+
+ulong CPU::OR_n(byte opcode)
+{
+	byte A = GetHighByte(m_AF);
+	byte n = ReadBytePCI();
+	byte result = A | n;
+	SetHighByte(&m_AF, result);
+
+	(result == 0x00) ? SetFlag(ZeroFlag) : ClearFlag(ZeroFlag);
+	ClearFlag(SubtractFlag);
+	ClearFlag(HalfCarryFlag);
+	ClearFlag(CarryFlag);
+
+	return 8;
+}
+
+ulong CPU::OR_0xHL(byte opcode)
+{
+	byte A = GetHighByte(m_AF);
+	byte value = m_MMU->ReadByte(m_HL);
+	byte result = A | value;
+	SetHighByte(&m_AF, result);
+
+	(result == 0x00) ? SetFlag(ZeroFlag) : ClearFlag(ZeroFlag);
+	ClearFlag(SubtractFlag);
+	ClearFlag(HalfCarryFlag);
+	ClearFlag(CarryFlag);
+
+	return 8;
+}
+
 ulong CPU::NOP(byte opcode)
 {
 	return 4;
