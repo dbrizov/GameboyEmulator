@@ -99,16 +99,19 @@ private:
 	bool IsFlagSet(byte flag);
 
 	/** Adds 2 bytes and sets/clears the flags in the F register */
-	byte AddBytes(byte b1, byte b2);
+	byte AddBytes(byte b1, byte b2, bool affectCarryFlag = true);
 
 	/** Adds 3 bytes and sets/clears the flags in the F register */
 	byte AddBytes(byte b1, byte b2, byte b3);
 
 	/** Subtracts 2 bytes and sets/clears the flags in the F register */
-	byte SubtractBytes(byte b1, byte b2);
+	byte SubtractBytes(byte b1, byte b2, bool affectCarryFlag = true);
 
 	/** Subtracts 3 bytes and sets/clears the flags in the F register */
 	byte SubtractBytes(byte b1, byte b2, byte b3);
+
+	/** Compares 2 bytes and return a flags byte */
+	byte CompareBytes(byte b1, byte b2);
 
 	// ===============
 	// INSTRUCTION SET
@@ -249,7 +252,7 @@ private:
 
 	/** A = A - (HL) - cf */
 	ulong SBC_A_0xHL(byte opcode);
-	
+
 	/** A = A & r */
 	ulong AND_r(byte opcode);
 
@@ -276,6 +279,33 @@ private:
 
 	/** A = A | (HL) */
 	ulong OR_0xHL(byte opcode);
+
+	/** Compare A - r */
+	ulong CP_r(byte opcode);
+
+	/** Compare A - n */
+	ulong CP_n(byte opcode);
+
+	/** Compare A - (HL) */
+	ulong CP_0xHL(byte opcode);
+
+	/** r = r + 1 */
+	ulong INC_r(byte opcode);
+
+	/** (HL) = (HL) + 1 */
+	ulong INC_0xHL(byte opcode);
+
+	/** r = r - 1 */
+	ulong DEC_r(byte opcode);
+
+	/** (HL) = (HL) - 1 */
+	ulong DEC_0xHL(byte opcode);
+
+	/** This instruction conditionally adjusts the accumulator for BCD (binary coded decimal) addition and subtraction operations */
+	ulong DAA(byte opcode);
+
+	/** A = A XOR 0xFF (all 0's become 1's, and all 1's become 0's) */
+	ulong CPL(byte opcode);
 
 	// ==================
 	// Control instructions

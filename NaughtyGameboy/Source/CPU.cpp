@@ -15,7 +15,7 @@ CPU::CPU() :
 	m_HL(0x0000),
 	m_SP(0x0000),
 	m_PC(0x0000)
-{	
+{
 	// In binary ##dddsss, where ddd is the DST register, and sss is the SRC register
 	// -------
 	// B = 000
@@ -34,7 +34,7 @@ CPU::CPU() :
 	m_byteRegisterMap[0x05] = reinterpret_cast<byte*>(&m_HL);
 	m_byteRegisterMap[0x06] = reinterpret_cast<byte*>(&m_AF); // Should not be used (F)
 	m_byteRegisterMap[0x07] = reinterpret_cast<byte*>(&m_AF) + 1;
-	
+
 	// In binary ##rr####, where rr is a 16bit register
 	// -------
 	// 00 = BC
@@ -124,6 +124,7 @@ byte* CPU::GetByteRegister_Dst(byte opcode)
 
 ushort* CPU::GetUShortRegister(byte opcode)
 {
+	// TODO Need to check this. There are some special cases with the PUSH and POP instruction that the AF register is used. However I think this is a Z80 thing only
 	return m_ushortRegisterMap[(opcode >> 4) & 0x03];
 }
 
@@ -158,7 +159,7 @@ ushort CPU::PopUShortFromStack()
 	// We pop the low byte first, and the high byte second, becasuse in memory the low byte comes first (the CPU is low-endian)
 	ushort value = m_MMU->ReadUShort(m_SP);
 	m_SP += 2;
-	
+
 	return value;
 }
 
@@ -188,14 +189,19 @@ bool CPU::IsFlagSet(byte flag)
 	return IS_BIT_SET(F, flag);
 }
 
-byte CPU::AddBytes(byte b1, byte b2)
+byte CPU::AddBytes(byte b1, byte b2, bool affectCarryFlag /*= true*/)
 {
 	byte result = b1 + b2;
 
 	(result == 0x00) ? SetFlag(ZeroFlag) : ClearFlag(ZeroFlag);
 	ClearFlag(SubtractFlag);
 	(((b1 & 0x0F) + (b2 & 0x0F)) > 0x0F) ? SetFlag(HalfCarryFlag) : ClearFlag(HalfCarryFlag);
-	((int)(b1 + b2) > 0xFF) ? SetFlag(CarryFlag) : ClearFlag(CarryFlag);
+
+	// This is a special case for the INC and DEC instructions. They don't affect the CarryFlag
+	if (affectCarryFlag)
+	{
+		((int)(b1 + b2) > 0xFF) ? SetFlag(CarryFlag) : ClearFlag(CarryFlag);
+	}
 
 	return result;
 }
@@ -212,14 +218,19 @@ byte CPU::AddBytes(byte b1, byte b2, byte b3)
 	return result;
 }
 
-byte CPU::SubtractBytes(byte b1, byte b2)
+byte CPU::SubtractBytes(byte b1, byte b2, bool affectCarryFlag /*= true*/)
 {
 	byte result = b1 - b2;
 
 	(result == 0x00) ? SetFlag(ZeroFlag) : ClearFlag(ZeroFlag);
 	SetFlag(SubtractFlag);
 	((int)((b1 & 0x0F) - (b2 & 0x0F)) < 0x00) ? SetFlag(HalfCarryFlag) : ClearFlag(HalfCarryFlag);
-	((int)(b1 - b2) < 0x00) ? SetFlag(CarryFlag) : ClearFlag(CarryFlag);
+
+	// This is a special case for the INC and DEC instructions. They don't affect the CarryFlag
+	if (affectCarryFlag)
+	{
+		((int)(b1 - b2) < 0x00) ? SetFlag(CarryFlag) : ClearFlag(CarryFlag);
+	}
 
 	return result;
 }
@@ -234,6 +245,30 @@ byte CPU::SubtractBytes(byte b1, byte b2, byte b3)
 	((int)(b1 - b2 - b3) < 0x00) ? SetFlag(CarryFlag) : ClearFlag(CarryFlag);
 
 	return result;
+}
+
+byte CPU::CompareBytes(byte b1, byte b2)
+{
+	byte flags = 0x00;
+
+	if (b1 == b2)
+	{
+		flags = SET_BIT(flags, ZeroFlag);
+	}
+
+	flags = SET_BIT(flags, SubtractFlag);
+
+	if ((int)((b1 & 0x0F) - (b2 - 0x0F)) < 0x00)
+	{
+		flags = SET_BIT(flags, HalfCarryFlag);
+	}
+
+	if ((int)(b1 - b2) < 0x00)
+	{
+		flags = SET_BIT(flags, CarryFlag);
+	}
+
+	return flags;
 }
 
 ulong CPU::LD_r_n(byte opcode)
@@ -693,6 +728,186 @@ ulong CPU::OR_0xHL(byte opcode)
 	ClearFlag(CarryFlag);
 
 	return 8;
+}
+
+ulong CPU::CP_r(byte opcode)
+{
+	byte A = GetHighByte(m_AF);
+	byte* r = GetByteRegister_Src(opcode);
+	byte flags = CompareBytes(A, *r);
+	SetLowByte(&m_AF, flags);
+
+	return 4;
+}
+
+ulong CPU::CP_n(byte opcode)
+{
+	byte A = GetHighByte(m_AF);
+	byte n = ReadBytePCI();
+	byte flags = CompareBytes(A, n);
+	SetLowByte(&m_AF, flags);
+
+	return 8;
+}
+
+ulong CPU::CP_0xHL(byte opcode)
+{
+	byte A = GetHighByte(m_AF);
+	byte value = m_MMU->ReadByte(m_HL);
+	byte flags = CompareBytes(A, value);
+	SetLowByte(&m_AF, flags);
+
+	return 8;
+}
+
+ulong CPU::INC_r(byte opcode)
+{
+	byte* r = GetByteRegister_Dst(opcode);
+	byte result = AddBytes(*r, 1, /*affectCarryFlag =*/false);
+	*r = result;
+
+	return 4;
+}
+
+ulong CPU::INC_0xHL(byte opcode)
+{
+	byte value = m_MMU->ReadByte(m_HL);
+	byte result = AddBytes(value, 1, /*affectCarryFlag =*/false);
+	m_MMU->WriteByte(m_HL, result);
+
+	return 12;
+}
+
+ulong CPU::DEC_r(byte opcode)
+{
+	byte* r = GetByteRegister_Dst(opcode);
+	byte result = SubtractBytes(*r, 1, /*affectCarryFlag =*/false);
+	*r = result;
+
+	return 4;
+}
+
+ulong CPU::DEC_0xHL(byte opcode)
+{
+	byte value = m_MMU->ReadByte(m_HL);
+	byte result = SubtractBytes(value, 1, /*affectCarryFlag =*/false);
+	m_MMU->WriteByte(m_HL, result);
+
+	return 12;
+}
+
+/*
+This instruction conditionally adjusts the accumulator for BCD (binary coded decimal) addition
+and subtraction operations. For addition(ADD, ADC, INC) or subtraction
+(SUB, SBC, DEC, NEC), the following table indicates the operation performed :
+
+N   C   Value of     H  Value of     Hex no   C flag after
+		high nibble     low nibble   added    execution
+
+0   0      0-9       0     0-9       00       0
+0   0      0-8       0     A-F       06       0
+0   0      0-9       1     0-3       06       0
+0   0      A-F       0     0-9       60       1
+0   0      9-F       0     A-F       66       1
+0   0      A-F       1     0-3       66       1
+0   1      0-2       0     0-9       60       1
+0   1      0-2       0     A-F       66       1
+0   1      0-3       1     0-3       66       1
+1   0      0-9       0     0-9       00       0
+1   0      0-8       1     6-F       FA       0
+1   1      7-F       0     0-9       A0       1
+1   1      6-F       1     6-F       9A       1
+
+Flags:
+	Z : Set if ACC is Zero after operation, clear otherwise.
+	N : Unaffected.
+	H : Clear
+	C : See instruction.
+
+Example:
+	If an addition operation is performed between 15 (BCD) and 27 (BCD), simple decimal
+	arithmetic gives this result:
+
+	15
+  + 27
+	----
+	42
+
+	But when the binary representations are added in the Accumulator according to
+	standard binary arithmetic:
+
+	0001 0101  15
+  + 0010 0111  27
+	-------------- -
+	0011 1100  3C
+
+	The sum is ambiguous. The DAA instruction adjusts this result so that correct
+	BCD representation is obtained:
+
+	0011 1100  3C result
+  + 0000 0110  06 + error
+	-------------- -
+	0100 0010  42 Correct BCD!
+*/
+ulong CPU::DAA(byte opcode)
+{
+	byte A = GetHighByte(m_AF);
+	byte err = 0x00; // error
+	byte c = GetFlag(CarryFlag);
+	byte h = GetFlag(HalfCarryFlag);
+
+	if (!IsFlagSet(SubtractFlag))
+	{
+		if (c || (A >= 0x9A))
+		{
+			err += 0x60;
+		}
+
+		if (h || ((A & 0x0F) >= 0x0A))
+		{
+			err += 0x06;
+		}
+	}
+	else
+	{
+		if (!c && h)
+		{
+			err += 0xFA;
+		}
+		else if (c && !h)
+		{
+			err += 0xA0;
+		}
+		else if (c && h)
+		{
+			err += 0x9A;
+		}
+	}
+
+	byte result = A + err;
+	SetHighByte(&m_AF, result);
+
+	(result == 0x00) ? SetFlag(ZeroFlag) : ClearFlag(ZeroFlag);
+	ClearFlag(HalfCarryFlag);
+
+	if ((A + err) > 0xFF)
+	{
+		SetFlag(CarryFlag);
+	}
+
+	return 4;
+}
+
+ulong CPU::CPL(byte opcode)
+{
+	byte A = GetHighByte(m_AF);
+	byte result = A ^ 0xFF;
+	SetHighByte(&m_AF, result);
+
+	SetFlag(SubtractFlag);
+	SetFlag(HalfCarryFlag);
+
+	return 4;
 }
 
 ulong CPU::NOP(byte opcode)
