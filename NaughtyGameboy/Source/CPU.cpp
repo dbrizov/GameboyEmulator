@@ -7,6 +7,12 @@ const byte CPU::SubtractFlag = 6;
 const byte CPU::HalfCarryFlag = 5;
 const byte CPU::CarryFlag = 4;
 
+const byte CPU::ZeroFlagMask = 1 << 7;
+const byte CPU::SubtractFlagMask = 1 << 6;
+const byte CPU::HalfCarryFlagMask = 1 << 5;
+const byte CPU::CarryFlagMask = 1 << 4;
+const byte CPU::AllFlagsMask = 0xF0;
+
 CPU::CPU() :
 	m_cycles(0),
 	m_AF(0x0000),
@@ -156,7 +162,8 @@ byte CPU::PopByteFromStack()
 
 ushort CPU::PopUShortFromStack()
 {
-	// We pop the low byte first, and the high byte second, becasuse in memory the low byte comes first (the CPU is low-endian)
+	// The stack is in range FF80-FFFE where FFFE is the bottom of the stack, and FF80 is the maximum top of the stack
+	// So in order to pop something from the stack we need to increase the stack pointer after we read the data from it
 	ushort value = m_MMU->ReadUShort(m_SP);
 	m_SP += 2;
 
@@ -189,16 +196,26 @@ bool CPU::IsFlagSet(byte flag)
 	return IS_BIT_SET(F, flag);
 }
 
-byte CPU::AddBytes(byte b1, byte b2, bool affectCarryFlag /*= true*/)
+byte CPU::AddBytes_Two(byte b1, byte b2, byte affectedFlags /*= AllFlagsMask*/)
 {
 	byte result = b1 + b2;
 
-	(result == 0x00) ? SetFlag(ZeroFlag) : ClearFlag(ZeroFlag);
-	ClearFlag(SubtractFlag);
-	(((b1 & 0x0F) + (b2 & 0x0F)) > 0x0F) ? SetFlag(HalfCarryFlag) : ClearFlag(HalfCarryFlag);
+	if (IS_BIT_SET(affectedFlags, ZeroFlag))
+	{
+		(result == 0x00) ? SetFlag(ZeroFlag) : ClearFlag(ZeroFlag);
+	}
 
-	// This is a special case for the INC and DEC instructions. They don't affect the CarryFlag
-	if (affectCarryFlag)
+	if (IS_BIT_SET(affectedFlags, SubtractFlag))
+	{
+		ClearFlag(SubtractFlag);
+	}
+
+	if (IS_BIT_SET(affectedFlags, HalfCarryFlag))
+	{
+		(((b1 & 0x0F) + (b2 & 0x0F)) > 0x0F) ? SetFlag(HalfCarryFlag) : ClearFlag(HalfCarryFlag);
+	}
+
+	if (IS_BIT_SET(affectedFlags, CarryFlag))
 	{
 		((int)(b1 + b2) > 0xFF) ? SetFlag(CarryFlag) : ClearFlag(CarryFlag);
 	}
@@ -206,28 +223,80 @@ byte CPU::AddBytes(byte b1, byte b2, bool affectCarryFlag /*= true*/)
 	return result;
 }
 
-byte CPU::AddBytes(byte b1, byte b2, byte b3)
+byte CPU::AddBytes_Three(byte b1, byte b2, byte b3, byte affectedFlags /*= AllFlagsMask*/)
 {
 	byte result = b1 + b2 + b3;
 
-	(result == 0x00) ? SetFlag(ZeroFlag) : ClearFlag(ZeroFlag);
-	ClearFlag(SubtractFlag);
-	(((b1 & 0x0F) + (b2 & 0x0F) + (b3 & 0x0F)) > 0x0F) ? SetFlag(HalfCarryFlag) : ClearFlag(HalfCarryFlag);
-	((int)(b1 + b2 + b3) > 0xFF) ? SetFlag(CarryFlag) : ClearFlag(CarryFlag);
+	if (IS_BIT_SET(affectedFlags, ZeroFlag))
+	{
+		(result == 0x00) ? SetFlag(ZeroFlag) : ClearFlag(ZeroFlag);
+	}
+
+	if (IS_BIT_SET(affectedFlags, SubtractFlag))
+	{
+		ClearFlag(SubtractFlag);
+	}
+
+	if (IS_BIT_SET(affectedFlags, HalfCarryFlag))
+	{
+		(((b1 & 0x0F) + (b2 & 0x0F) + (b3 & 0x0F)) > 0x0F) ? SetFlag(HalfCarryFlag) : ClearFlag(HalfCarryFlag);
+	}
+
+	if (IS_BIT_SET(affectedFlags, CarryFlag))
+	{
+		((int)(b1 + b2 + b3) > 0xFF) ? SetFlag(CarryFlag) : ClearFlag(CarryFlag);
+	}
 
 	return result;
 }
 
-byte CPU::SubtractBytes(byte b1, byte b2, bool affectCarryFlag /*= true*/)
+ushort CPU::AddUShorts_Two(ushort s1, ushort s2, byte affectedFlags /*= AllFlagsMask*/)
+{
+	ushort result = s1 + s2;
+
+	if (IS_BIT_SET(affectedFlags, ZeroFlag))
+	{
+		(result == 0x0000) ? SetFlag(ZeroFlag) : ClearFlag(ZeroFlag);
+	}
+
+	if (IS_BIT_SET(affectedFlags, SubtractFlag))
+	{
+		ClearFlag(SubtractFlag);
+	}
+
+	if (IS_BIT_SET(affectedFlags, HalfCarryFlag))
+	{
+		(((s1 & 0x0F00) + (s2 & 0x0F00)) > 0x0F00) ? SetFlag(HalfCarryFlag) : ClearFlag(HalfCarryFlag);
+	}
+
+	if (IS_BIT_SET(affectedFlags, CarryFlag))
+	{
+		((int)(s1 + s2) > 0xFFFF) ? SetFlag(CarryFlag) : ClearFlag(CarryFlag);
+	}
+
+	return result;
+}
+
+byte CPU::SubtractBytes_Two(byte b1, byte b2, byte affectedFlags /*= AllFlagsMask*/)
 {
 	byte result = b1 - b2;
 
-	(result == 0x00) ? SetFlag(ZeroFlag) : ClearFlag(ZeroFlag);
-	SetFlag(SubtractFlag);
-	((int)((b1 & 0x0F) - (b2 & 0x0F)) < 0x00) ? SetFlag(HalfCarryFlag) : ClearFlag(HalfCarryFlag);
+	if (IS_BIT_SET(affectedFlags, ZeroFlag))
+	{
+		(result == 0x00) ? SetFlag(ZeroFlag) : ClearFlag(ZeroFlag);
+	}
 
-	// This is a special case for the INC and DEC instructions. They don't affect the CarryFlag
-	if (affectCarryFlag)
+	if (IS_BIT_SET(affectedFlags, SubtractFlag))
+	{
+		SetFlag(SubtractFlag);
+	}
+
+	if (IS_BIT_SET(affectedFlags, HalfCarryFlag))
+	{
+		((int)((b1 & 0x0F) - (b2 & 0x0F)) < 0x00) ? SetFlag(HalfCarryFlag) : ClearFlag(HalfCarryFlag);
+	}
+
+	if (IS_BIT_SET(affectedFlags, CarryFlag))
 	{
 		((int)(b1 - b2) < 0x00) ? SetFlag(CarryFlag) : ClearFlag(CarryFlag);
 	}
@@ -235,14 +304,56 @@ byte CPU::SubtractBytes(byte b1, byte b2, bool affectCarryFlag /*= true*/)
 	return result;
 }
 
-byte CPU::SubtractBytes(byte b1, byte b2, byte b3)
+byte CPU::SubtractBytes_Three(byte b1, byte b2, byte b3, byte affectedFlags /*= AllFlagsMask*/)
 {
 	byte result = b1 - b2 - b3;
 
-	(result == 0x00) ? SetFlag(ZeroFlag) : ClearFlag(ZeroFlag);
-	SetFlag(SubtractFlag);
-	((int)((b1 & 0x0F) - (b2 & 0x0F) - (b3 & 0x0F)) < 0x00) ? SetFlag(HalfCarryFlag) : ClearFlag(HalfCarryFlag);
-	((int)(b1 - b2 - b3) < 0x00) ? SetFlag(CarryFlag) : ClearFlag(CarryFlag);
+	if (IS_BIT_SET(affectedFlags, ZeroFlag))
+	{
+		(result == 0x00) ? SetFlag(ZeroFlag) : ClearFlag(ZeroFlag);
+	}
+
+	if (IS_BIT_SET(affectedFlags, SubtractFlag))
+	{
+		SetFlag(SubtractFlag);
+	}
+
+	if (IS_BIT_SET(affectedFlags, HalfCarryFlag))
+	{
+		((int)((b1 & 0x0F) - (b2 & 0x0F) - (b3 & 0x0F)) < 0x00) ? SetFlag(HalfCarryFlag) : ClearFlag(HalfCarryFlag);
+	}
+
+	if (IS_BIT_SET(affectedFlags, CarryFlag))
+	{
+		((int)(b1 - b2 - b3) < 0x00) ? SetFlag(CarryFlag) : ClearFlag(CarryFlag);
+	}
+
+	return result;
+}
+
+ushort CPU::SubtractUShorts_Two(ushort s1, ushort s2, byte affectedFlags /*= AllFlagsMask*/)
+{
+	ushort result = s1 - s2;
+
+	if (IS_BIT_SET(affectedFlags, ZeroFlag))
+	{
+		(result == 0x0000) ? SetFlag(ZeroFlag) : ClearFlag(ZeroFlag);
+	}
+
+	if (IS_BIT_SET(affectedFlags, SubtractFlag))
+	{
+		SetFlag(SubtractFlag);
+	}
+
+	if (IS_BIT_SET(affectedFlags, HalfCarryFlag))
+	{
+		((int)((s1 & 0x0F00) - (s2 & 0x0F00)) < 0x0000) ? SetFlag(HalfCarryFlag) : ClearFlag(HalfCarryFlag);
+	}
+
+	if (IS_BIT_SET(affectedFlags, CarryFlag))
+	{
+		((int)(s1 - s2) < 0x0000) ? SetFlag(CarryFlag) : ClearFlag(CarryFlag);
+	}
 
 	return result;
 }
@@ -473,7 +584,7 @@ ulong CPU::ADD_A_r(byte opcode)
 {
 	byte A = GetHighByte(m_AF);
 	byte* r = GetByteRegister_Src(opcode);
-	byte result = AddBytes(A, *r);
+	byte result = AddBytes_Two(A, *r);
 	SetHighByte(&m_AF, result);
 
 	return 4;
@@ -483,7 +594,7 @@ ulong CPU::ADD_A_n(byte opcode)
 {
 	byte A = GetHighByte(m_AF);
 	byte n = ReadBytePCI();
-	byte result = AddBytes(A, n);
+	byte result = AddBytes_Two(A, n);
 	SetHighByte(&m_AF, result);
 
 	return 8;
@@ -493,7 +604,7 @@ ulong CPU::ADD_A_0xHL(byte opcode)
 {
 	byte A = GetHighByte(m_AF);
 	byte value = m_MMU->ReadByte(m_HL);
-	byte result = AddBytes(A, value);
+	byte result = AddBytes_Two(A, value);
 	SetHighByte(&m_AF, result);
 
 	return 8;
@@ -504,7 +615,7 @@ ulong CPU::ADC_A_r(byte opcode)
 	byte A = GetHighByte(m_AF);
 	byte* r = GetByteRegister_Src(opcode);
 	byte cf = GetFlag(CarryFlag);
-	byte result = AddBytes(A, *r, cf);
+	byte result = AddBytes_Three(A, *r, cf);
 	SetHighByte(&m_AF, result);
 
 	return 4;
@@ -515,7 +626,7 @@ ulong CPU::ADC_A_n(byte opcode)
 	byte A = GetHighByte(m_AF);
 	byte n = ReadBytePCI();
 	byte cf = GetFlag(CarryFlag);
-	byte result = AddBytes(A, n, cf);
+	byte result = AddBytes_Three(A, n, cf);
 	SetHighByte(&m_AF, result);
 
 	return 8;
@@ -526,7 +637,7 @@ ulong CPU::ADC_A_0xHL(byte opcode)
 	byte A = GetHighByte(m_AF);
 	byte value = m_MMU->ReadByte(m_HL);
 	byte cf = GetFlag(CarryFlag);
-	byte result = AddBytes(A, value, cf);
+	byte result = AddBytes_Three(A, value, cf);
 	SetHighByte(&m_AF, result);
 
 	return 8;
@@ -536,7 +647,7 @@ ulong CPU::SUB_A_r(byte opcode)
 {
 	byte A = GetHighByte(m_AF);
 	byte* r = GetByteRegister_Src(opcode);
-	byte result = SubtractBytes(A, *r);
+	byte result = SubtractBytes_Two(A, *r);
 	SetHighByte(&m_AF, result);
 
 	return 4;
@@ -546,7 +657,7 @@ ulong CPU::SUB_A_n(byte opcode)
 {
 	byte A = GetHighByte(m_AF);
 	byte n = ReadBytePCI();
-	byte result = SubtractBytes(A, n);
+	byte result = SubtractBytes_Two(A, n);
 	SetHighByte(&m_AF, result);
 
 	return 8;
@@ -556,7 +667,7 @@ ulong CPU::SUB_A_0xHL(byte opcode)
 {
 	byte A = GetHighByte(m_AF);
 	byte value = m_MMU->ReadByte(m_HL);
-	byte result = SubtractBytes(A, value);
+	byte result = SubtractBytes_Two(A, value);
 	SetHighByte(&m_AF, result);
 
 	return 8;
@@ -567,7 +678,7 @@ ulong CPU::SBC_A_r(byte opcode)
 	byte A = GetHighByte(m_AF);
 	byte* r = GetByteRegister_Src(opcode);
 	byte cf = GetFlag(CarryFlag);
-	byte result = SubtractBytes(A, *r, cf);
+	byte result = SubtractBytes_Three(A, *r, cf);
 	SetHighByte(&m_AF, result);
 
 	return 4;
@@ -578,7 +689,7 @@ ulong CPU::SBC_A_n(byte opcode)
 	byte A = GetHighByte(m_AF);
 	byte n = ReadBytePCI();
 	byte cf = GetFlag(CarryFlag);
-	byte result = SubtractBytes(A, n, cf);
+	byte result = SubtractBytes_Three(A, n, cf);
 	SetHighByte(&m_AF, result);
 
 	return 8;
@@ -589,7 +700,7 @@ ulong CPU::SBC_A_0xHL(byte opcode)
 	byte A = GetHighByte(m_AF);
 	byte value = m_MMU->ReadByte(m_HL);
 	byte cf = GetFlag(CarryFlag);
-	byte result = SubtractBytes(A, value, cf);
+	byte result = SubtractBytes_Three(A, value, cf);
 	SetHighByte(&m_AF, result);
 
 	return 8;
@@ -763,7 +874,7 @@ ulong CPU::CP_0xHL(byte opcode)
 ulong CPU::INC_r(byte opcode)
 {
 	byte* r = GetByteRegister_Dst(opcode);
-	byte result = AddBytes(*r, 1, /*affectCarryFlag =*/false);
+	byte result = AddBytes_Two(*r, 1, /*affectedFlags =*/ ZeroFlagMask | SubtractFlagMask | HalfCarryFlagMask);
 	*r = result;
 
 	return 4;
@@ -772,7 +883,7 @@ ulong CPU::INC_r(byte opcode)
 ulong CPU::INC_0xHL(byte opcode)
 {
 	byte value = m_MMU->ReadByte(m_HL);
-	byte result = AddBytes(value, 1, /*affectCarryFlag =*/false);
+	byte result = AddBytes_Two(value, 1, /*affectedFlags =*/ ZeroFlagMask | SubtractFlagMask | HalfCarryFlagMask);
 	m_MMU->WriteByte(m_HL, result);
 
 	return 12;
@@ -781,7 +892,7 @@ ulong CPU::INC_0xHL(byte opcode)
 ulong CPU::DEC_r(byte opcode)
 {
 	byte* r = GetByteRegister_Dst(opcode);
-	byte result = SubtractBytes(*r, 1, /*affectCarryFlag =*/false);
+	byte result = SubtractBytes_Two(*r, 1, /*affectedFlags =*/ ZeroFlagMask | SubtractFlagMask | HalfCarryFlagMask);
 	*r = result;
 
 	return 4;
@@ -790,7 +901,7 @@ ulong CPU::DEC_r(byte opcode)
 ulong CPU::DEC_0xHL(byte opcode)
 {
 	byte value = m_MMU->ReadByte(m_HL);
-	byte result = SubtractBytes(value, 1, /*affectCarryFlag =*/false);
+	byte result = SubtractBytes_Two(value, 1, /*affectedFlags =*/ ZeroFlagMask | SubtractFlagMask | HalfCarryFlagMask);
 	m_MMU->WriteByte(m_HL, result);
 
 	return 12;
@@ -802,7 +913,7 @@ and subtraction operations. For addition(ADD, ADC, INC) or subtraction
 (SUB, SBC, DEC, NEC), the following table indicates the operation performed :
 
 N   C  Value of      H  Value of     Hex no   C flag after
-       high nibble      low nibble   added    execution
+	   high nibble      low nibble   added    execution
 
 0   0      0-9       0     0-9       00       0
 0   0      0-8       0     A-F       06       0
@@ -908,6 +1019,61 @@ ulong CPU::CPL(byte opcode)
 	SetFlag(HalfCarryFlag);
 
 	return 4;
+}
+
+ulong CPU::ADD_HL_rr(byte opcode)
+{
+	ushort* rr = GetUShortRegister(opcode);
+	ushort result = AddUShorts_Two(m_HL, *rr, /*affectedFlags =*/ SubtractFlagMask | HalfCarryFlagMask | CarryFlagMask);
+	m_HL = result;
+
+	return 8;
+}
+
+ulong CPU::INC_rr(byte opcode)
+{
+	ushort* rr = GetUShortRegister(opcode);
+	ushort result = AddUShorts_Two(*rr, 1, /*affectedFlags =*/ 0x00);
+	*rr = result;
+
+	return 8;
+}
+
+ulong CPU::DEC_rr(byte opcode)
+{
+	ushort* rr = GetUShortRegister(opcode);
+	ushort result = SubtractUShorts_Two(*rr, 1, /*affectedFlags =*/ 0x00);
+	*rr = result;
+
+	return 8;
+}
+
+ulong CPU::ADD_SP_dd(byte opcode)
+{
+	sbyte dd = (sbyte)ReadBytePCI();
+	ushort result = (m_SP + dd);
+
+	ClearFlag(ZeroFlag);
+	ClearFlag(SubtractFlag);
+	((result & 0x0F) < (m_SP & 0x0F)) ? SetFlag(HalfCarryFlag) : ClearFlag(HalfCarryFlag);
+	((result & 0xFF) < (m_SP & 0xFF)) ? SetFlag(CarryFlag) : ClearFlag(CarryFlag);
+
+	m_SP = result;
+	
+	return 16;
+}
+
+ulong CPU::LD_HL_SPdd(byte opcode)
+{
+	sbyte dd = (sbyte)ReadBytePCI();
+	ushort result = (m_SP + dd);
+
+	ClearFlag(ZeroFlag);
+	ClearFlag(SubtractFlag);
+	((result & 0x0F) < (m_SP & 0x0F)) ? SetFlag(HalfCarryFlag) : ClearFlag(HalfCarryFlag);
+	((result & 0xFF) < (m_SP & 0xFF)) ? SetFlag(CarryFlag) : ClearFlag(CarryFlag);
+
+	return 12;
 }
 
 ulong CPU::NOP(byte opcode)

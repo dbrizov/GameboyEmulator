@@ -30,6 +30,12 @@ private:
 	static const byte HalfCarryFlag;
 	static const byte CarryFlag;
 
+	static const byte ZeroFlagMask;
+	static const byte SubtractFlagMask;
+	static const byte HalfCarryFlagMask;
+	static const byte CarryFlagMask;
+	static const byte AllFlagsMask;
+
 private:
 	ulong m_cycles; // Total cycles
 
@@ -99,16 +105,22 @@ private:
 	bool IsFlagSet(byte flag);
 
 	/** Adds 2 bytes and sets/clears the flags in the F register */
-	byte AddBytes(byte b1, byte b2, bool affectCarryFlag = true);
+	byte AddBytes_Two(byte b1, byte b2, byte affectedFlags = AllFlagsMask);
 
 	/** Adds 3 bytes and sets/clears the flags in the F register */
-	byte AddBytes(byte b1, byte b2, byte b3);
+	byte AddBytes_Three(byte b1, byte b2, byte b3, byte affectedFlags = AllFlagsMask);
+
+	/** Adds 2 ushorts and sets/clears the flags in the F register */
+	ushort AddUShorts_Two(ushort s1, ushort s2, byte affectedFlags = AllFlagsMask);
 
 	/** Subtracts 2 bytes and sets/clears the flags in the F register */
-	byte SubtractBytes(byte b1, byte b2, bool affectCarryFlag = true);
+	byte SubtractBytes_Two(byte b1, byte b2, byte affectedFlags = AllFlagsMask);
 
 	/** Subtracts 3 bytes and sets/clears the flags in the F register */
-	byte SubtractBytes(byte b1, byte b2, byte b3);
+	byte SubtractBytes_Three(byte b1, byte b2, byte b3, byte affectedFlags = AllFlagsMask);
+
+	/** Subtracts 2 ushorts and sets/clears the flags in the F register */
+	ushort SubtractUShorts_Two(ushort s1, ushort s2, byte affectedFlags = AllFlagsMask);
 
 	/** Compares 2 bytes and return a flags byte */
 	byte CompareBytes(byte b1, byte b2);
@@ -121,6 +133,7 @@ private:
 	// - rr - 16bit register
 	// - n - the next 8bit data in memory
 	// - nn - the next 16 bit data in memory
+	// - dd - 8bit signed data in memory
 	// - 0x in the method names means indirect addressing.
 	// - 0xHL (HL) - the address pointed to by the HL register
 	// - 0xnn (nn) - the address pointed to by the next 16bit data in memory
@@ -306,6 +319,25 @@ private:
 
 	/** A = A XOR 0xFF (all 0's become 1's, and all 1's become 0's) */
 	ulong CPL(byte opcode);
+
+	// =====================================
+	// 16bit arithmetic/logical instructions
+	// =====================================
+
+	/** HL = HL + rr */
+	ulong ADD_HL_rr(byte opcode);
+
+	/** rr = rr + 1 */
+	ulong INC_rr(byte opcode);
+
+	/** rr = rr - 1 */
+	ulong DEC_rr(byte opcode);
+
+	/** SP = SP +- dd */
+	ulong ADD_SP_dd(byte opcode);
+
+	/** HL = SP +- dd */
+	ulong LD_HL_SPdd(byte opcode);
 
 	// ==================
 	// Control instructions
