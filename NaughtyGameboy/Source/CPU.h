@@ -18,13 +18,19 @@ private:
 	// This bit becomes set(1) if the result of an operation has been zero(0).Used for conditional jumps.
 
 	// The Carry Flag(C, or Cy)
-	// Becomes set when the result of an addition became bigger than FFh(8bit) or FFFFh(16bit).Or when the result of a subtraction or comparision became less than zero(much as for Z80 and 80x86 CPUs, but unlike as for 65XX and ARM CPUs).Also the flag becomes set when a rotate / shift operation has shifted - out a "1" - bit.
+	// Becomes set when the result of an addition became bigger than FFh(8bit) or FFFFh(16bit).
+	// Or when the result of a subtraction or comparision became less than zero(much as for Z80 and 80x86 CPUs, but unlike as for 65XX and ARM CPUs).
+	// Also the flag becomes set when a rotate / shift operation has shifted - out a "1" - bit.
 	// Used for conditional jumps, and for instructions such like ADC, SBC, RL, RLA, etc.
 
 	// The BCD Flags(N, H)
-	// These flags are(rarely) used for the DAA instruction only, N Indicates whether the previous instruction has been an addition or subtraction, and H indicates carry for lower 4bits of the result, also for DAA, the C flag must indicate carry for upper 8bits.
-	// After adding / subtracting two BCD numbers, DAA is intended to convert the result into BCD format; BCD numbers are ranged from 00h to 99h rather than 00h to FFh.
-	// Because C and H flags must contain carry - outs for each digit, DAA cannot be used for 16bit operations(which have 4 digits), or for INC / DEC operations(which do not affect C - flag).
+	// - These flags are(rarely) used for the DAA instruction only,
+	//   N Indicates whether the previous instruction has been an addition or subtraction,
+	//   and H indicates carry for lower 4bits of the result, also for DAA, the C flag must indicate carry for upper 8bits.
+	// - After adding / subtracting two BCD numbers, DAA is intended to convert the result into BCD format;
+	//   BCD numbers are ranged from 00h to 99h rather than 00h to FFh.
+	// - Because C and H flags must contain carry - outs for each digit,
+	//   DAA cannot be used for 16bit operations(which have 4 digits), or for INC / DEC operations(which do not affect C - flag).
 	static const byte ZeroFlag;
 	static const byte SubtractFlag;
 	static const byte HalfCarryFlag;
@@ -124,6 +130,30 @@ private:
 
 	/** Compares 2 bytes and return a flags byte */
 	byte CompareBytes(byte b1, byte b2);
+
+	/**
+	* Rotate a byte left, and set/clear the flags in the F register.
+	* The 7th bit is put back into position 0. The 7th bit also goes to the carry flag.
+	*/
+	byte RotateLeft(byte b, bool clearZeroFlag = false);
+
+	/**
+	* Rotate a byte left through carry flag, and set/clear the flags in the F register.
+	* The 7th bit is loaded into the carry flag. The old carry is put in position 0.
+	*/
+	byte RotateLeftThroughCarry(byte b, bool clearZeroFlag = false);
+
+	/**
+	* Rotate a byte right, and set/clear the flags in the F register.
+	* The 0th bit is put back into position 7. The 0th bit also goes to the carry flag.
+	*/
+	byte RotateRight(byte b, bool clearZeroFlag = false);
+
+	/**
+	* Rotate a byte right through carry flag, and set/clear the flags in the F register.
+	* The 0th bit is loaded into the carry flag. The old carry is put in position 7.
+	*/
+	byte RotateRightThroughCarry(byte b, bool clearZeroFlag = false);
 
 	// ===============
 	// INSTRUCTION SET
@@ -338,6 +368,70 @@ private:
 
 	/** HL = SP +- dd */
 	ulong LD_HL_SPdd(byte opcode);
+
+	// =============================
+	// Rotate and shift instructions
+	// =============================
+
+	/** Rotate A left */
+	ulong RLCA(byte opcode);
+
+	/** Rotate A left through carry */
+	ulong RLA(byte opcode);
+
+	/** Rotate A right */
+	ulong RRCA(byte opcode);
+
+	/** Rotate A right through carry */
+	ulong RRA(byte opcode);
+
+	/** Rotate r left */
+	ulong RLC_r(byte opcode);
+
+	/** Rotate (HL) left */
+	ulong RLC_0xHL(byte opcode);
+
+	/** Rotate r left through carry */
+	ulong RL_r(byte opcode);
+
+	/** Rotate (HL) left through carry */
+	ulong RL_0xHL(byte opcode);
+
+	/** Rotate r right */
+	ulong RRC_r(byte opcode);
+
+	/** Rotate (HL) right */
+	ulong RRC_0xHL(byte opcode);
+
+	/** ROtate r right through carry */
+	ulong RR_r(byte opcode);
+
+	/** Rotate (HL) right through carry */
+	ulong RR_0xHL(byte opcode);
+
+	/** Shift r left arithmetic (b0 = 0) */
+	ulong SLA_r(byte opcode);
+
+	/** Shift (HL) left arithmetic (b0 = 0) */
+	ulong SLA_0xHL(byte opcode);
+
+	/** Shift r right arithmetic (b7 = b7) */
+	ulong SRA_r(byte opcode);
+
+	/** Shift (HL) right arithmetic (b7 = b7) */
+	ulong SRA_0xHL(byte opcode);
+
+	/** Shift r right logical (b7 = 0) */
+	ulong SRL_r(byte opcode);
+
+	/** Shift (HL) logical (b7 = 0) */
+	ulong SRL_0xHL(byte opcode);
+
+	/** Swap the low/high nibbles of r */
+	ulong SWAP_r(byte opcode);
+
+	/** Swap the low/high nibbles of (HL) */
+	ulong SWAP_0xHL(byte opcode);
 
 	// ==================
 	// Control instructions

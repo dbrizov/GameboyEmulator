@@ -382,6 +382,96 @@ byte CPU::CompareBytes(byte b1, byte b2)
 	return flags;
 }
 
+byte CPU::RotateLeft(byte b, bool clearZeroFlag /*= false*/)
+{
+	byte newCF = GET_BIT(b, 7);
+	b = b << 1;
+	b = (newCF == 1) ? SET_BIT(b, 0) : CLEAR_BIT(b, 0);
+
+	if (clearZeroFlag)
+	{
+		ClearFlag(ZeroFlag);
+	}
+	else
+	{
+		(b == 0) ? SetFlag(ZeroFlag) : ClearFlag(ZeroFlag);
+	}
+
+	ClearFlag(SubtractFlag);
+	ClearFlag(HalfCarryFlag);
+	(newCF == 1) ? SetFlag(CarryFlag) : ClearFlag(CarryFlag);
+
+	return b;
+}
+
+byte CPU::RotateLeftThroughCarry(byte b, bool clearZeroFlag /*= false*/)
+{
+	byte oldCF = GetFlag(CarryFlag);
+	byte newCF = GET_BIT(b, 7);
+	b = b << 1;
+	b = (oldCF == 1) ? SET_BIT(b, 0) : CLEAR_BIT(b, 0);
+
+	if (clearZeroFlag)
+	{
+		ClearFlag(ZeroFlag);
+	}
+	else
+	{
+		(b == 0) ? SetFlag(ZeroFlag) : ClearFlag(ZeroFlag);
+	}
+
+	ClearFlag(SubtractFlag);
+	ClearFlag(HalfCarryFlag);
+	(newCF == 1) ? SetFlag(CarryFlag) : ClearFlag(CarryFlag);
+
+	return b;
+}
+
+byte CPU::RotateRight(byte b, bool clearZeroFlag /*= false*/)
+{
+	byte newCF = GET_BIT(b, 0);
+	b = b >> 1;
+	b = (newCF == 1) ? SET_BIT(b, 7) : CLEAR_BIT(b, 7);
+
+	if (clearZeroFlag)
+	{
+		ClearFlag(ZeroFlag);
+	}
+	else
+	{
+		(b == 0) ? SetFlag(ZeroFlag) : ClearFlag(ZeroFlag);
+	}
+
+	ClearFlag(SubtractFlag);
+	ClearFlag(HalfCarryFlag);
+	(newCF == 1) ? SetFlag(CarryFlag) : ClearFlag(CarryFlag);
+
+	return b;
+}
+
+byte CPU::RotateRightThroughCarry(byte b, bool clearZeroFlag /*= false*/)
+{
+	byte oldCF = GetFlag(CarryFlag);
+	byte newCF = GET_BIT(b, 0);
+	b = b >> 1;
+	b = (oldCF == 1) ? SET_BIT(b, 7) : CLEAR_BIT(b, 7);
+
+	if (clearZeroFlag)
+	{
+		ClearFlag(ZeroFlag);
+	}
+	else
+	{
+		(b == 0) ? SetFlag(ZeroFlag) : ClearFlag(ZeroFlag);
+	}
+
+	ClearFlag(SubtractFlag);
+	ClearFlag(HalfCarryFlag);
+	(newCF == 1) ? SetFlag(CarryFlag) : ClearFlag(CarryFlag);
+
+	return b;
+}
+
 ulong CPU::LD_r_n(byte opcode)
 {
 	byte n = ReadBytePCI();
@@ -1059,7 +1149,7 @@ ulong CPU::ADD_SP_dd(byte opcode)
 	((result & 0xFF) < (m_SP & 0xFF)) ? SetFlag(CarryFlag) : ClearFlag(CarryFlag);
 
 	m_SP = result;
-	
+
 	return 16;
 }
 
@@ -1074,6 +1164,232 @@ ulong CPU::LD_HL_SPdd(byte opcode)
 	((result & 0xFF) < (m_SP & 0xFF)) ? SetFlag(CarryFlag) : ClearFlag(CarryFlag);
 
 	return 12;
+}
+
+ulong CPU::RLCA(byte opcode)
+{
+	byte A = GetHighByte(m_AF);
+	byte result = RotateLeft(A, /*clearZeroFlag =*/ true);
+	SetHighByte(&m_AF, result);
+
+	return 4;
+}
+
+ulong CPU::RLA(byte opcode)
+{
+	byte A = GetHighByte(m_AF);
+	byte result = RotateLeftThroughCarry(A, /*clearZeroFlag =*/ true);
+	SetHighByte(&m_AF, result);
+
+	return 4;
+}
+
+ulong CPU::RRCA(byte opcode)
+{
+	byte A = GetHighByte(m_AF);
+	byte result = RotateRight(A, /*clearZeroFlag =*/ true);
+	SetHighByte(&m_AF, result);
+
+	return 4;
+}
+
+ulong CPU::RRA(byte opcode)
+{
+	byte A = GetHighByte(m_AF);
+	byte result = RotateRightThroughCarry(A, /*clearZeroFlag =*/ true);
+	SetHighByte(&m_AF, result);
+
+	return 4;
+}
+
+ulong CPU::RLC_r(byte opcode)
+{
+	byte* r = GetByteRegister_Src(opcode);
+	byte result = RotateLeft(*r);
+	*r = result;
+
+	return 8;
+}
+
+ulong CPU::RLC_0xHL(byte opcode)
+{
+	byte value = m_MMU->ReadByte(m_HL);
+	byte result = RotateLeft(value);
+	m_MMU->WriteByte(m_HL, result);
+
+	return 16;
+}
+
+ulong CPU::RL_r(byte opcode)
+{
+	byte* r = GetByteRegister_Src(opcode);
+	byte result = RotateLeftThroughCarry(*r);
+	*r = result;
+
+	return 8;
+}
+
+ulong CPU::RL_0xHL(byte opcode)
+{
+	byte value = m_MMU->ReadByte(m_HL);
+	byte result = RotateLeftThroughCarry(value);
+	m_MMU->WriteByte(m_HL, result);
+
+	return 16;
+}
+
+ulong CPU::RRC_r(byte opcode)
+{
+	byte* r = GetByteRegister_Src(opcode);
+	byte result = RotateRight(*r);
+	*r = result;
+
+	return 8;
+}
+
+ulong CPU::RRC_0xHL(byte opcode)
+{
+	byte value = m_MMU->ReadByte(m_HL);
+	byte result = RotateRight(value);
+	m_MMU->WriteByte(m_HL, result);
+
+	return 16;
+}
+
+ulong CPU::RR_r(byte opcode)
+{
+	byte* r = GetByteRegister_Src(opcode);
+	byte result = RotateRightThroughCarry(*r);
+	*r = result;
+
+	return 8;
+}
+
+ulong CPU::RR_0xHL(byte opcode)
+{
+	byte value = m_MMU->ReadByte(m_HL);
+	byte result = RotateRightThroughCarry(value);
+	m_MMU->WriteByte(m_HL, result);
+
+	return 16;
+}
+
+ulong CPU::SLA_r(byte opcode)
+{
+	byte* r = GetByteRegister_Src(opcode);
+	byte cf = GET_BIT(*r, 7);
+	*r = (*r << 1);
+
+	(*r == 0) ? SetFlag(ZeroFlag) : ClearFlag(ZeroFlag);
+	ClearFlag(SubtractFlag);
+	ClearFlag(HalfCarryFlag);
+	(cf == 1) ? SetFlag(CarryFlag) : ClearFlag(CarryFlag);
+
+	return 8;
+}
+
+ulong CPU::SLA_0xHL(byte opcode)
+{
+	byte value = m_MMU->ReadByte(m_HL);
+	byte cf = GET_BIT(value, 7);
+	byte result = (value << 1);
+	m_MMU->WriteByte(m_HL, result);
+
+	(result == 0) ? SetFlag(ZeroFlag) : ClearFlag(ZeroFlag);
+	ClearFlag(SubtractFlag);
+	ClearFlag(HalfCarryFlag);
+	(cf == 1) ? SetFlag(CarryFlag) : ClearFlag(CarryFlag);
+
+	return 16;
+}
+
+ulong CPU::SRA_r(byte opcode)
+{
+	byte* r = GetByteRegister_Src(opcode);
+	byte cf = GET_BIT(*r, 0);
+	*r = (*r >> 1) | (*r & 0x80);
+
+	(*r == 0) ? SetFlag(ZeroFlag) : ClearFlag(ZeroFlag);
+	ClearFlag(SubtractFlag);
+	ClearFlag(HalfCarryFlag);
+	(cf == 1) ? SetFlag(CarryFlag) : ClearFlag(CarryFlag);
+
+	return 8;
+}
+
+ulong CPU::SRA_0xHL(byte opcode)
+{
+	byte value = m_MMU->ReadByte(m_HL);
+	byte cf = GET_BIT(value, 0);
+	byte result = (value >> 1) | (value & 0x80);
+	m_MMU->WriteByte(m_HL, result);
+
+	(result == 0) ? SetFlag(ZeroFlag) : ClearFlag(ZeroFlag);
+	ClearFlag(SubtractFlag);
+	ClearFlag(HalfCarryFlag);
+	(cf == 1) ? SetFlag(CarryFlag) : ClearFlag(CarryFlag);
+
+	return 16;
+}
+
+ulong CPU::SRL_r(byte opcode)
+{
+	byte* r = GetByteRegister_Src(opcode);
+	byte cf = GET_BIT(*r, 0);
+	*r = (*r >> 1);
+
+	(*r == 0) ? SetFlag(ZeroFlag) : ClearFlag(ZeroFlag);
+	ClearFlag(SubtractFlag);
+	ClearFlag(HalfCarryFlag);
+	(cf == 1) ? SetFlag(CarryFlag) : ClearFlag(CarryFlag);
+
+	return 8;
+}
+
+ulong CPU::SRL_0xHL(byte opcode)
+{
+	byte value = m_MMU->ReadByte(m_HL);
+	byte cf = GET_BIT(value, 0);
+	byte result = (value >> 1);
+	m_MMU->WriteByte(m_HL, result);
+
+	(result == 0) ? SetFlag(ZeroFlag) : ClearFlag(ZeroFlag);
+	ClearFlag(SubtractFlag);
+	ClearFlag(HalfCarryFlag);
+	(cf == 1) ? SetFlag(CarryFlag) : ClearFlag(CarryFlag);
+
+	return 16;
+}
+
+ulong CPU::SWAP_r(byte opcode)
+{
+	byte* r = GetByteRegister_Src(opcode);
+	byte low = (*r & 0x0F);
+	byte high = (*r & 0xF0);
+	*r = (low << 4) | (high >> 4);
+
+	(*r == 0) ? SetFlag(ZeroFlag) : ClearFlag(ZeroFlag);
+	ClearFlag(SubtractFlag);
+	ClearFlag(HalfCarryFlag);
+	ClearFlag(CarryFlag);
+
+	return 8;
+}
+
+ulong CPU::SWAP_0xHL(byte opcode)
+{
+	byte value = m_MMU->ReadByte(m_HL);
+	byte low = (value & 0x0F);
+	byte high = (value & 0xF0);
+	byte result = (low << 4) | (high >> 4);
+	m_MMU->WriteByte(m_HL, result);
+
+	(result == 0) ? SetFlag(ZeroFlag) : ClearFlag(ZeroFlag);
+	ClearFlag(SubtractFlag);
+	ClearFlag(HalfCarryFlag);
+	ClearFlag(CarryFlag);
+
+	return 16;
 }
 
 ulong CPU::NOP(byte opcode)
