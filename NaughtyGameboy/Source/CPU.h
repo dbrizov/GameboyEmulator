@@ -161,9 +161,9 @@ private:
 	// NOTES:
 	// - r/R - 8bit register
 	// - rr - 16bit register
-	// - n - the next 8bit data in memory
-	// - nn - the next 16 bit data in memory
-	// - dd - 8bit signed data in memory
+	// - n - 8bit data
+	// - nn - 16bit data
+	// - dd - 8bit signed data
 	// - 0x in the method names means indirect addressing.
 	// - 0xHL (HL) - the address pointed to by the HL register
 	// - 0xnn (nn) - the address pointed to by the next 16bit data in memory
@@ -432,6 +432,28 @@ private:
 
 	/** Swap the low/high nibbles of (HL) */
 	ulong SWAP_0xHL(byte opcode);
+
+	// =======================
+	// Single bit instructions
+	// =======================
+
+	/** Test bit n in r */
+	ulong BIT_n_r(byte opcode);
+
+	/** Test bit n in (HL) */
+	ulong BIT_n_0xHL(byte opcode);
+
+	/** Set bit n in r */
+	ulong SET_n_r(byte opcode);
+
+	/** Set bit n in (HL) */
+	ulong SET_n_0xHL(byte opcode);
+
+	/** Clear bit n in r */
+	ulong RES_n_r(byte opcode);
+
+	/** Clear bit n in (HL) */
+	ulong RES_n_0xHL(byte opcode);
 
 	// ==================
 	// Control instructions

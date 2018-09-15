@@ -1392,6 +1392,68 @@ ulong CPU::SWAP_0xHL(byte opcode)
 	return 16;
 }
 
+ulong CPU::BIT_n_r(byte opcode)
+{
+	byte bit = (opcode >> 3) & 0x07;
+	byte* r = GetByteRegister_Src(opcode);
+
+	!IS_BIT_SET(*r, bit) ? SetFlag(ZeroFlag) : ClearFlag(ZeroFlag);
+	ClearFlag(SubtractFlag);
+	SetFlag(HalfCarryFlag);
+
+	return 8;
+}
+
+ulong CPU::BIT_n_0xHL(byte opcode)
+{
+	byte bit = (opcode >> 3) & 0x07;
+	byte value = m_MMU->ReadByte(m_HL);
+
+	!IS_BIT_SET(value, bit) ? SetFlag(ZeroFlag) : ClearFlag(ZeroFlag);
+	ClearFlag(SubtractFlag);
+	SetFlag(HalfCarryFlag);
+
+	return 16;
+}
+
+ulong CPU::SET_n_r(byte opcode)
+{
+	byte bit = (opcode >> 3) & 0x07;
+	byte* r = GetByteRegister_Src(opcode);
+	*r = SET_BIT(*r, bit);
+
+	return 8;
+}
+
+ulong CPU::SET_n_0xHL(byte opcode)
+{
+	byte bit = (opcode >> 3) & 0x07;
+	byte value = m_MMU->ReadByte(m_HL);
+	byte result = SET_BIT(value, bit);
+	m_MMU->WriteByte(m_HL, result);
+
+	return 16;
+}
+
+ulong CPU::RES_n_r(byte opcode)
+{
+	byte bit = (opcode >> 3) & 0x07;
+	byte* r = GetByteRegister_Src(opcode);
+	*r = CLEAR_BIT(*r, bit);
+
+	return 8;
+}
+
+ulong CPU::RES_n_0xHL(byte opcode)
+{
+	byte bit = (opcode >> 3) & 0x07;
+	byte value = m_MMU->ReadByte(m_HL);
+	byte result = CLEAR_BIT(value, bit);
+	m_MMU->WriteByte(m_HL, result);
+
+	return 16;
+}
+
 ulong CPU::NOP(byte opcode)
 {
 	return 4;
