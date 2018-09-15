@@ -44,6 +44,8 @@ private:
 
 private:
 	ulong m_cycles; // Total cycles
+	bool m_isHalted;
+	byte m_IME; // Interrupt master enabled
 
 	// Registers
 	ushort m_AF; // Accumulator & Flags;
@@ -459,5 +461,24 @@ private:
 	// Control instructions
 	// ==================
 
-	ulong NOP(byte opcode); // 0x00
+	/** Complement carry flag (cf = cf XOR 1) */
+	ulong CCF(byte opcode);
+
+	/** Set carry flag (cf = 1) */
+	ulong SCF(byte opcode);
+
+	/** No operation */
+	ulong NOP(byte opcode);
+
+	/** Halt until interrupt occurs */
+	ulong HALT(byte opcode);
+
+	/** Stop */
+	ulong STOP(byte opcode);
+
+	/** Disable interrupts (IME = 0) */
+	ulong DI(byte opcode);
+
+	/** Enable interrupts (IME = 1) */
+	ulong EI(byte opcode);
 };

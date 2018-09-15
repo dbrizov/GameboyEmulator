@@ -15,6 +15,8 @@ const byte CPU::AllFlagsMask = 0xF0;
 
 CPU::CPU() :
 	m_cycles(0),
+	m_isHalted(false),
+	m_IME(0),
 	m_AF(0x0000),
 	m_BC(0x0000),
 	m_DE(0x0000),
@@ -61,27 +63,34 @@ ulong CPU::Step()
 {
 	ulong cycles = 0;
 
-	ushort address = m_PC;
-	byte opcode = ReadBytePCI();
-	InstructionFunction instruction = nullptr;
-
-	if (opcode == 0xCB)
+	if (m_isHalted)
 	{
-		opcode = ReadBytePCI();
-		instruction = m_instructionMapCB[opcode];
+		cycles = NOP(0x00);
 	}
 	else
 	{
-		instruction = m_instructionMap[opcode];
-	}
+		ushort address = m_PC;
+		byte opcode = ReadBytePCI();
+		InstructionFunction instruction = nullptr;
 
-	if (instruction != nullptr)
-	{
-		cycles = (this->*instruction)(opcode);
-	}
-	else
-	{
-		Logger::LogError("OpCode 0x%02X at address 0x%04X could not be interpreted.", opcode, address);
+		if (opcode == 0xCB)
+		{
+			opcode = ReadBytePCI();
+			instruction = m_instructionMapCB[opcode];
+		}
+		else
+		{
+			instruction = m_instructionMap[opcode];
+		}
+
+		if (instruction != nullptr)
+		{
+			cycles = (this->*instruction)(opcode);
+		}
+		else
+		{
+			Logger::LogError("OpCode 0x%02X at address 0x%04X could not be interpreted.", opcode, address);
+		}
 	}
 
 	return cycles;
@@ -1454,7 +1463,51 @@ ulong CPU::RES_n_0xHL(byte opcode)
 	return 16;
 }
 
+ulong CPU::CCF(byte opcode)
+{
+	ClearFlag(SubtractFlag);
+	ClearFlag(HalfCarryFlag);
+	IsFlagSet(CarryFlag) ? ClearFlag(CarryFlag) : SetFlag(CarryFlag);
+
+	return 4;
+}
+
+ulong CPU::SCF(byte opcode)
+{
+	ClearFlag(SubtractFlag);
+	ClearFlag(HalfCarryFlag);
+	SetFlag(CarryFlag);
+
+	return 4;
+}
+
 ulong CPU::NOP(byte opcode)
 {
+	return 4;
+}
+
+ulong CPU::HALT(byte opcode)
+{
+	m_isHalted = true;
+
+	return 4;
+}
+
+ulong CPU::STOP(byte opcode)
+{
+	return NOP(opcode);
+}
+
+ulong CPU::DI(byte opcode)
+{
+	m_IME = 0;
+
+	return 4;
+}
+
+ulong CPU::EI(byte opcode)
+{
+	m_IME = 1;
+
 	return 4;
 }
