@@ -481,6 +481,35 @@ byte CPU::RotateRightThroughCarry(byte b, bool clearZeroFlag /*= false*/)
 	return b;
 }
 
+bool CPU::OpcodeCondition(byte opcode)
+{
+	// ###cc###
+	// Not Zero(cc = 00)
+	// Zero(cc = 01)
+	// Not Carry(cc = 10)
+	// Carry(cc = 11)
+	byte cc = (opcode >> 3) & 0x03;
+	bool conditionMet = false;
+
+	switch (cc)
+	{
+	case 0x00:  // Not Zero
+		conditionMet = !IsFlagSet(ZeroFlag);
+		break;
+	case 0x01:  // Zero
+		conditionMet = IsFlagSet(ZeroFlag);
+		break;
+	case 0x02:  // Not Carry
+		conditionMet = !IsFlagSet(CarryFlag);
+		break;
+	case 0x03:  // Carry
+		conditionMet = IsFlagSet(CarryFlag);
+		break;
+	}
+
+	return conditionMet;
+}
+
 ulong CPU::LD_r_n(byte opcode)
 {
 	byte n = ReadBytePCI();
@@ -1510,4 +1539,89 @@ ulong CPU::EI(byte opcode)
 	m_IME = 1;
 
 	return 4;
+}
+
+ulong CPU::JP_nn(byte opcode)
+{
+	ushort nn = ReadUShortPCI();
+	m_PC = nn;
+
+	return 16;
+}
+
+ulong CPU::JP_HL(byte opcode)
+{
+	m_PC = m_HL;
+
+	return 4;
+}
+
+ulong CPU::JP_cc_nn(byte opcode)
+{
+	return OpcodeCondition(opcode) ? JP_nn(opcode) : 12;
+}
+
+ulong CPU::JR_dd(byte opcode)
+{
+	sbyte dd = (sbyte)ReadBytePCI();
+	m_PC += dd;
+
+	return 12;
+}
+
+ulong CPU::JR_cc_dd(byte opcode)
+{
+	return OpcodeCondition(opcode) ? JR_dd(opcode) : 8;
+}
+
+ulong CPU::CALL_nn(byte opcode)
+{
+	ushort nn = ReadUShortPCI();
+	PushUShortToStack(m_PC);
+	m_PC = nn;
+
+	return 24;
+}
+
+ulong CPU::CALL_cc_nn(byte opcode)
+{
+	return OpcodeCondition(opcode) ? CALL_nn(opcode) : 12;
+}
+
+ulong CPU::RET(byte opcode)
+{
+	m_PC = PopUShortFromStack();
+
+	return 16;
+}
+
+ulong CPU::RET_cc(byte opcode)
+{
+	return OpcodeCondition(opcode) ? (RET(opcode) + 4) : 8;
+}
+
+ulong CPU::RETI(byte opcode)
+{
+	m_IME = 1;
+	m_PC = PopUShortFromStack();
+
+	return 16;
+}
+
+ulong CPU::RST_n(byte opcode)
+{
+	// ##nnn###
+	// 000 - 0x00
+	// 001 - 0x08
+	// 010 - 0x10
+	// 011 - 0x18
+	// 100 - 0x20
+	// 101 - 0x28
+	// 110 - 0x30
+	// 111 - 0x38
+	PushUShortToStack(m_PC);
+	byte n = ((opcode >> 3) & 0x07);
+	m_PC = (ushort)(n);
+
+	return 16;
 }

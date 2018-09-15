@@ -157,6 +157,9 @@ private:
 	*/
 	byte RotateRightThroughCarry(byte b, bool clearZeroFlag = false);
 
+	/** Returns true of false based on some condition encoded into an opcode */
+	bool OpcodeCondition(byte opcode);
+
 	// ===============
 	// INSTRUCTION SET
 	// ===============
@@ -166,6 +169,7 @@ private:
 	// - n - 8bit data
 	// - nn - 16bit data
 	// - dd - 8bit signed data
+	// - cc - Jump condition
 	// - 0x in the method names means indirect addressing.
 	// - 0xHL (HL) - the address pointed to by the HL register
 	// - 0xnn (nn) - the address pointed to by the next 16bit data in memory
@@ -481,4 +485,41 @@ private:
 
 	/** Enable interrupts (IME = 1) */
 	ulong EI(byte opcode);
+
+	// =================
+	// Jump instructions
+	// =================
+
+	/** Jump to nn, PC = nn */
+	ulong JP_nn(byte opcode);
+
+	/** Jump to HL, PC = HL */
+	ulong JP_HL(byte opcode);
+
+	/** Jump to nn if condition cc is met */
+	ulong JP_cc_nn(byte opcode);
+
+	/** Relative jump. PC = PC +- dd, where dd is signed byte */
+	ulong JR_dd(byte opcode);
+
+	/** Relative jump with condition cc. PC = PC +- dd, where dd is signed byte */
+	ulong JR_cc_dd(byte opcode);
+
+	/** Pushes PC to SP, then sets PC to the target address nn */
+	ulong CALL_nn(byte opcode);
+
+	/** if condition cc is met - pushes PC to SP, then sets PC to the target adress nn */
+	ulong CALL_cc_nn(byte opcode);
+
+	/** Return. PC = (SP), SP = SP + 2 */
+	ulong RET(byte opcode);
+
+	/** Return if condition cc is met. PC = (SP), SP = SP + 2 */
+	ulong RET_cc(byte opcode);
+
+	/** Return and enable interrupts */
+	ulong RETI(byte opcode);
+
+	/** Reset PC to 0x00, 0x08, 0x10, 0x18, 0x20, 0x28, 0x30, 0x38 */
+	ulong RST_n(byte opcode);
 };
