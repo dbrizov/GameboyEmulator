@@ -114,17 +114,585 @@ ushort CPU::ReadUShortPCI()
 
 void CPU::InitInstructionMap()
 {
-	for (int i = 0; i < ARRAY_SIZE(m_instructionMap); i++)
-	{
-		m_instructionMap[i] = nullptr;
-	}
-
-	for (int i = 0; i < ARRAY_SIZE(m_instructionMapCB); i++)
-	{
-		m_instructionMapCB[i] = nullptr;
-	}
-
+	// 0x
 	m_instructionMap[0x00] = &CPU::NOP;
+	m_instructionMap[0x01] = &CPU::LD_rr_nn;
+	m_instructionMap[0x02] = &CPU::LD_0xBC_A;
+	m_instructionMap[0x03] = &CPU::INC_rr;
+	m_instructionMap[0x04] = &CPU::INC_r;
+	m_instructionMap[0x05] = &CPU::DEC_r;
+	m_instructionMap[0x06] = &CPU::LD_r_n;
+	m_instructionMap[0x07] = &CPU::RLCA;
+	m_instructionMap[0x08] = &CPU::LD_0xnn_SP;
+	m_instructionMap[0x09] = &CPU::ADD_HL_rr;
+	m_instructionMap[0x0A] = &CPU::LD_A_0xBC;
+	m_instructionMap[0x0B] = &CPU::DEC_rr;
+	m_instructionMap[0x0C] = &CPU::INC_r;
+	m_instructionMap[0x0D] = &CPU::DEC_r;
+	m_instructionMap[0x0E] = &CPU::LD_r_n;
+	m_instructionMap[0x0F] = &CPU::RRCA;
+
+	// 1x
+	m_instructionMap[0x10] = &CPU::STOP;
+	m_instructionMap[0x11] = &CPU::LD_rr_nn;
+	m_instructionMap[0x12] = &CPU::LD_0xDE_A;
+	m_instructionMap[0x13] = &CPU::INC_rr;
+	m_instructionMap[0x14] = &CPU::INC_r;
+	m_instructionMap[0x15] = &CPU::DEC_r;
+	m_instructionMap[0x16] = &CPU::LD_r_n;
+	m_instructionMap[0x17] = &CPU::RLA;
+	m_instructionMap[0x18] = &CPU::JR_dd;
+	m_instructionMap[0x19] = &CPU::ADD_HL_rr;
+	m_instructionMap[0x1A] = &CPU::LD_A_0xDE;
+	m_instructionMap[0x1B] = &CPU::DEC_rr;
+	m_instructionMap[0x1C] = &CPU::INC_r;
+	m_instructionMap[0x1D] = &CPU::DEC_r;
+	m_instructionMap[0x1E] = &CPU::LD_r_n;
+	m_instructionMap[0x1F] = &CPU::RRA;
+
+	// 2x
+	m_instructionMap[0x20] = &CPU::JR_cc_dd;
+	m_instructionMap[0x21] = &CPU::LD_rr_nn;
+	m_instructionMap[0x22] = &CPU::LDI_0xHL_A;
+	m_instructionMap[0x23] = &CPU::INC_rr;
+	m_instructionMap[0x24] = &CPU::INC_r;
+	m_instructionMap[0x25] = &CPU::DEC_r;
+	m_instructionMap[0x26] = &CPU::LD_r_n;
+	m_instructionMap[0x27] = &CPU::DAA;
+	m_instructionMap[0x28] = &CPU::JR_cc_dd;
+	m_instructionMap[0x29] = &CPU::ADD_HL_rr;
+	m_instructionMap[0x2A] = &CPU::LDI_A_0xHL;
+	m_instructionMap[0x2B] = &CPU::DEC_rr;
+	m_instructionMap[0x2C] = &CPU::INC_r;
+	m_instructionMap[0x2D] = &CPU::DEC_r;
+	m_instructionMap[0x2E] = &CPU::LD_r_n;
+	m_instructionMap[0x2F] = &CPU::CPL;
+
+	// 3x
+	m_instructionMap[0x30] = &CPU::JR_cc_dd;
+	m_instructionMap[0x31] = &CPU::LD_rr_nn;
+	m_instructionMap[0x32] = &CPU::LDD_0xHL_A;
+	m_instructionMap[0x33] = &CPU::INC_rr;
+	m_instructionMap[0x34] = &CPU::INC_0xHL;
+	m_instructionMap[0x35] = &CPU::DEC_0xHL;
+	m_instructionMap[0x36] = &CPU::LD_0xHL_n;
+	m_instructionMap[0x37] = &CPU::SCF;
+	m_instructionMap[0x38] = &CPU::JR_cc_dd;
+	m_instructionMap[0x39] = &CPU::ADD_HL_rr;
+	m_instructionMap[0x3A] = &CPU::LDD_A_0xHL;
+	m_instructionMap[0x3B] = &CPU::DEC_rr;
+	m_instructionMap[0x3C] = &CPU::INC_r;
+	m_instructionMap[0x3D] = &CPU::DEC_r;
+	m_instructionMap[0x3E] = &CPU::LD_r_n;
+	m_instructionMap[0x3F] = &CPU::CCF;
+
+	// 4x
+	m_instructionMap[0x40] = &CPU::LD_r_R;
+	m_instructionMap[0x41] = &CPU::LD_r_R;
+	m_instructionMap[0x42] = &CPU::LD_r_R;
+	m_instructionMap[0x43] = &CPU::LD_r_R;
+	m_instructionMap[0x44] = &CPU::LD_r_R;
+	m_instructionMap[0x45] = &CPU::LD_r_R;
+	m_instructionMap[0x46] = &CPU::LD_r_0xHL;
+	m_instructionMap[0x47] = &CPU::LD_r_R;
+	m_instructionMap[0x48] = &CPU::LD_r_R;
+	m_instructionMap[0x49] = &CPU::LD_r_R;
+	m_instructionMap[0x4A] = &CPU::LD_r_R;
+	m_instructionMap[0x4B] = &CPU::LD_r_R;
+	m_instructionMap[0x4C] = &CPU::LD_r_R;
+	m_instructionMap[0x4D] = &CPU::LD_r_R;
+	m_instructionMap[0x4E] = &CPU::LD_r_0xHL;
+	m_instructionMap[0x4F] = &CPU::LD_r_R;
+
+	// 5x
+	m_instructionMap[0x50] = &CPU::LD_r_R;
+	m_instructionMap[0x51] = &CPU::LD_r_R;
+	m_instructionMap[0x52] = &CPU::LD_r_R;
+	m_instructionMap[0x53] = &CPU::LD_r_R;
+	m_instructionMap[0x54] = &CPU::LD_r_R;
+	m_instructionMap[0x55] = &CPU::LD_r_R;
+	m_instructionMap[0x56] = &CPU::LD_r_0xHL;
+	m_instructionMap[0x57] = &CPU::LD_r_R;
+	m_instructionMap[0x58] = &CPU::LD_r_R;
+	m_instructionMap[0x59] = &CPU::LD_r_R;
+	m_instructionMap[0x5A] = &CPU::LD_r_R;
+	m_instructionMap[0x5B] = &CPU::LD_r_R;
+	m_instructionMap[0x5C] = &CPU::LD_r_R;
+	m_instructionMap[0x5D] = &CPU::LD_r_R;
+	m_instructionMap[0x5E] = &CPU::LD_r_0xHL;
+	m_instructionMap[0x5F] = &CPU::LD_r_R;
+
+	// 6x
+	m_instructionMap[0x60] = &CPU::LD_r_R;
+	m_instructionMap[0x61] = &CPU::LD_r_R;
+	m_instructionMap[0x62] = &CPU::LD_r_R;
+	m_instructionMap[0x63] = &CPU::LD_r_R;
+	m_instructionMap[0x64] = &CPU::LD_r_R;
+	m_instructionMap[0x65] = &CPU::LD_r_R;
+	m_instructionMap[0x66] = &CPU::LD_r_0xHL;
+	m_instructionMap[0x67] = &CPU::LD_r_R;
+	m_instructionMap[0x68] = &CPU::LD_r_R;
+	m_instructionMap[0x69] = &CPU::LD_r_R;
+	m_instructionMap[0x6A] = &CPU::LD_r_R;
+	m_instructionMap[0x6B] = &CPU::LD_r_R;
+	m_instructionMap[0x6C] = &CPU::LD_r_R;
+	m_instructionMap[0x6D] = &CPU::LD_r_R;
+	m_instructionMap[0x6E] = &CPU::LD_r_0xHL;
+	m_instructionMap[0x6F] = &CPU::LD_r_R;
+
+	// 7x
+	m_instructionMap[0x70] = &CPU::LD_0xHL_r;
+	m_instructionMap[0x71] = &CPU::LD_0xHL_r;
+	m_instructionMap[0x72] = &CPU::LD_0xHL_r;
+	m_instructionMap[0x73] = &CPU::LD_0xHL_r;
+	m_instructionMap[0x74] = &CPU::LD_0xHL_r;
+	m_instructionMap[0x75] = &CPU::LD_0xHL_r;
+	m_instructionMap[0x76] = &CPU::HALT;
+	m_instructionMap[0x77] = &CPU::LD_0xHL_r;
+	m_instructionMap[0x78] = &CPU::LD_r_R;
+	m_instructionMap[0x79] = &CPU::LD_r_R;
+	m_instructionMap[0x7A] = &CPU::LD_r_R;
+	m_instructionMap[0x7B] = &CPU::LD_r_R;
+	m_instructionMap[0x7C] = &CPU::LD_r_R;
+	m_instructionMap[0x7D] = &CPU::LD_r_R;
+	m_instructionMap[0x7E] = &CPU::LD_r_0xHL;
+	m_instructionMap[0x7F] = &CPU::LD_r_R;
+
+	// 8x
+	m_instructionMap[0x80] = &CPU::ADD_A_r;
+	m_instructionMap[0x81] = &CPU::ADD_A_r;
+	m_instructionMap[0x82] = &CPU::ADD_A_r;
+	m_instructionMap[0x83] = &CPU::ADD_A_r;
+	m_instructionMap[0x84] = &CPU::ADD_A_r;
+	m_instructionMap[0x85] = &CPU::ADD_A_r;
+	m_instructionMap[0x86] = &CPU::ADD_A_0xHL;
+	m_instructionMap[0x87] = &CPU::ADD_A_r;
+	m_instructionMap[0x88] = &CPU::ADC_A_r;
+	m_instructionMap[0x89] = &CPU::ADC_A_r;
+	m_instructionMap[0x8A] = &CPU::ADC_A_r;
+	m_instructionMap[0x8B] = &CPU::ADC_A_r;
+	m_instructionMap[0x8C] = &CPU::ADC_A_r;
+	m_instructionMap[0x8D] = &CPU::ADC_A_r;
+	m_instructionMap[0x8E] = &CPU::ADC_A_0xHL;
+	m_instructionMap[0x8F] = &CPU::ADC_A_r;
+
+	// 9x
+	m_instructionMap[0x90] = &CPU::SUB_A_r;
+	m_instructionMap[0x91] = &CPU::SUB_A_r;
+	m_instructionMap[0x92] = &CPU::SUB_A_r;
+	m_instructionMap[0x93] = &CPU::SUB_A_r;
+	m_instructionMap[0x94] = &CPU::SUB_A_r;
+	m_instructionMap[0x95] = &CPU::SUB_A_r;
+	m_instructionMap[0x96] = &CPU::SUB_A_0xHL;
+	m_instructionMap[0x97] = &CPU::SUB_A_r;
+	m_instructionMap[0x98] = &CPU::SBC_A_r;
+	m_instructionMap[0x99] = &CPU::SBC_A_r;
+	m_instructionMap[0x9A] = &CPU::SBC_A_r;
+	m_instructionMap[0x9B] = &CPU::SBC_A_r;
+	m_instructionMap[0x9C] = &CPU::SBC_A_r;
+	m_instructionMap[0x9D] = &CPU::SBC_A_r;
+	m_instructionMap[0x9E] = &CPU::SBC_A_0xHL;
+	m_instructionMap[0x9F] = &CPU::SBC_A_r;
+
+	// Ax
+	m_instructionMap[0xA0] = &CPU::AND_r;
+	m_instructionMap[0xA1] = &CPU::AND_r;
+	m_instructionMap[0xA2] = &CPU::AND_r;
+	m_instructionMap[0xA3] = &CPU::AND_r;
+	m_instructionMap[0xA4] = &CPU::AND_r;
+	m_instructionMap[0xA5] = &CPU::AND_r;
+	m_instructionMap[0xA6] = &CPU::AND_0xHL;
+	m_instructionMap[0xA7] = &CPU::AND_r;
+	m_instructionMap[0xA8] = &CPU::XOR_r;
+	m_instructionMap[0xA9] = &CPU::XOR_r;
+	m_instructionMap[0xAA] = &CPU::XOR_r;
+	m_instructionMap[0xAB] = &CPU::XOR_r;
+	m_instructionMap[0xAC] = &CPU::XOR_r;
+	m_instructionMap[0xAD] = &CPU::XOR_r;
+	m_instructionMap[0xAE] = &CPU::XOR_0xHL;
+	m_instructionMap[0xAF] = &CPU::XOR_r;
+
+	// Bx
+	m_instructionMap[0xB0] = &CPU::OR_r;
+	m_instructionMap[0xB1] = &CPU::OR_r;
+	m_instructionMap[0xB2] = &CPU::OR_r;
+	m_instructionMap[0xB3] = &CPU::OR_r;
+	m_instructionMap[0xB4] = &CPU::OR_r;
+	m_instructionMap[0xB5] = &CPU::OR_r;
+	m_instructionMap[0xB6] = &CPU::OR_0xHL;
+	m_instructionMap[0xB7] = &CPU::OR_r;
+	m_instructionMap[0xB8] = &CPU::CP_r;
+	m_instructionMap[0xB9] = &CPU::CP_r;
+	m_instructionMap[0xBA] = &CPU::CP_r;
+	m_instructionMap[0xBB] = &CPU::CP_r;
+	m_instructionMap[0xBC] = &CPU::CP_r;
+	m_instructionMap[0xBD] = &CPU::CP_r;
+	m_instructionMap[0xBE] = &CPU::CP_0xHL;
+	m_instructionMap[0xBF] = &CPU::CP_r;
+
+	// Cx
+	m_instructionMap[0xC0] = &CPU::RET_cc;
+	m_instructionMap[0xC1] = &CPU::POP_rr;
+	m_instructionMap[0xC2] = &CPU::JP_cc_nn;
+	m_instructionMap[0xC3] = &CPU::JP_nn;
+	m_instructionMap[0xC4] = &CPU::CALL_cc_nn;
+	m_instructionMap[0xC5] = &CPU::PUSH_rr;
+	m_instructionMap[0xC6] = &CPU::ADD_A_n;
+	m_instructionMap[0xC7] = &CPU::RST_n;
+	m_instructionMap[0xC8] = &CPU::RET_cc;
+	m_instructionMap[0xC9] = &CPU::RET;
+	m_instructionMap[0xCA] = &CPU::JP_cc_nn;
+	m_instructionMap[0xCB] = nullptr; // Prefix to use 0xCB instruction map (m_instructionMapCB)
+	m_instructionMap[0xCC] = &CPU::CALL_cc_nn;
+	m_instructionMap[0xCD] = &CPU::CALL_nn;
+	m_instructionMap[0xCE] = &CPU::ADC_A_n;
+	m_instructionMap[0xCF] = &CPU::RST_n;
+
+	// Dx
+	m_instructionMap[0xD0] = &CPU::RET_cc;
+	m_instructionMap[0xD1] = &CPU::POP_rr;
+	m_instructionMap[0xD2] = &CPU::JP_cc_nn;
+	m_instructionMap[0xD3] = nullptr;
+	m_instructionMap[0xD4] = &CPU::CALL_cc_nn;
+	m_instructionMap[0xD5] = &CPU::PUSH_rr;
+	m_instructionMap[0xD6] = &CPU::SUB_A_n;
+	m_instructionMap[0xD7] = &CPU::RST_n;
+	m_instructionMap[0xD8] = &CPU::RET_cc;
+	m_instructionMap[0xD9] = &CPU::RETI;
+	m_instructionMap[0xDA] = &CPU::JP_cc_nn;
+	m_instructionMap[0xDB] = nullptr;
+	m_instructionMap[0xDC] = &CPU::CALL_cc_nn;
+	m_instructionMap[0xDD] = nullptr;
+	m_instructionMap[0xDE] = &CPU::SBC_A_n;
+	m_instructionMap[0xDF] = &CPU::RST_n;
+
+	// Ex
+	m_instructionMap[0xE0] = &CPU::LD_0xFF00n_A;
+	m_instructionMap[0xE1] = &CPU::POP_rr;
+	m_instructionMap[0xE2] = &CPU::LD_0xFF00C_A;
+	m_instructionMap[0xE3] = nullptr;
+	m_instructionMap[0xE4] = nullptr;
+	m_instructionMap[0xE5] = &CPU::PUSH_rr;
+	m_instructionMap[0xE6] = &CPU::AND_n;
+	m_instructionMap[0xE7] = &CPU::RST_n;
+	m_instructionMap[0xE8] = &CPU::ADD_SP_dd;
+	m_instructionMap[0xE9] = &CPU::JP_HL;
+	m_instructionMap[0xEA] = &CPU::LD_0xnn_A;
+	m_instructionMap[0xEB] = nullptr;
+	m_instructionMap[0xEC] = nullptr;
+	m_instructionMap[0xED] = nullptr;
+	m_instructionMap[0xEE] = &CPU::XOR_n;
+	m_instructionMap[0xEF] = &CPU::RST_n;
+
+	// Fx
+	m_instructionMap[0xF0] = &CPU::LD_A_0xFF00n;
+	m_instructionMap[0xF1] = &CPU::POP_rr;
+	m_instructionMap[0xF2] = &CPU::LD_A_0xFF00C;
+	m_instructionMap[0xF3] = &CPU::DI;
+	m_instructionMap[0xF4] = nullptr;
+	m_instructionMap[0xF5] = &CPU::PUSH_rr;
+	m_instructionMap[0xF6] = &CPU::OR_n;
+	m_instructionMap[0xF7] = &CPU::RST_n;
+	m_instructionMap[0xF8] = &CPU::LD_HL_SPdd;
+	m_instructionMap[0xF9] = &CPU::LD_SP_HL;
+	m_instructionMap[0xFA] = &CPU::LD_A_0xnn;
+	m_instructionMap[0xFB] = &CPU::EI;
+	m_instructionMap[0xFC] = nullptr;
+	m_instructionMap[0xFD] = nullptr;
+	m_instructionMap[0xFE] = &CPU::CP_n;
+	m_instructionMap[0xFF] = &CPU::RST_n;
+
+	// =========
+	// Prefix CB
+	// =========
+
+	// 0x
+	m_instructionMapCB[0x00] = &CPU::RLC_r;
+	m_instructionMapCB[0x01] = &CPU::RLC_r;
+	m_instructionMapCB[0x02] = &CPU::RLC_r;
+	m_instructionMapCB[0x03] = &CPU::RLC_r;
+	m_instructionMapCB[0x04] = &CPU::RLC_r;
+	m_instructionMapCB[0x05] = &CPU::RLC_r;
+	m_instructionMapCB[0x06] = &CPU::RLC_0xHL;
+	m_instructionMapCB[0x07] = &CPU::RLC_r;
+	m_instructionMapCB[0x08] = &CPU::RRC_r;
+	m_instructionMapCB[0x09] = &CPU::RRC_r;
+	m_instructionMapCB[0x0A] = &CPU::RRC_r;
+	m_instructionMapCB[0x0B] = &CPU::RRC_r;
+	m_instructionMapCB[0x0C] = &CPU::RRC_r;
+	m_instructionMapCB[0x0D] = &CPU::RRC_r;
+	m_instructionMapCB[0x0E] = &CPU::RRC_0xHL;
+	m_instructionMapCB[0x0F] = &CPU::RRC_r;
+
+	// 1x
+	m_instructionMapCB[0x10] = &CPU::RL_r;
+	m_instructionMapCB[0x11] = &CPU::RL_r;
+	m_instructionMapCB[0x12] = &CPU::RL_r;
+	m_instructionMapCB[0x13] = &CPU::RL_r;
+	m_instructionMapCB[0x14] = &CPU::RL_r;
+	m_instructionMapCB[0x15] = &CPU::RL_r;
+	m_instructionMapCB[0x16] = &CPU::RL_0xHL;
+	m_instructionMapCB[0x17] = &CPU::RL_r;
+	m_instructionMapCB[0x18] = &CPU::RR_r;
+	m_instructionMapCB[0x19] = &CPU::RR_r;
+	m_instructionMapCB[0x1A] = &CPU::RR_r;
+	m_instructionMapCB[0x1B] = &CPU::RR_r;
+	m_instructionMapCB[0x1C] = &CPU::RR_r;
+	m_instructionMapCB[0x1D] = &CPU::RR_r;
+	m_instructionMapCB[0x1E] = &CPU::RR_0xHL;
+	m_instructionMapCB[0x1F] = &CPU::RR_r;
+
+	// 2x
+	m_instructionMapCB[0x20] = &CPU::SLA_r;
+	m_instructionMapCB[0x21] = &CPU::SLA_r;
+	m_instructionMapCB[0x22] = &CPU::SLA_r;
+	m_instructionMapCB[0x23] = &CPU::SLA_r;
+	m_instructionMapCB[0x24] = &CPU::SLA_r;
+	m_instructionMapCB[0x25] = &CPU::SLA_r;
+	m_instructionMapCB[0x26] = &CPU::SLA_0xHL;
+	m_instructionMapCB[0x27] = &CPU::SLA_r;
+	m_instructionMapCB[0x28] = &CPU::SRA_r;
+	m_instructionMapCB[0x29] = &CPU::SRA_r;
+	m_instructionMapCB[0x2A] = &CPU::SRA_r;
+	m_instructionMapCB[0x2B] = &CPU::SRA_r;
+	m_instructionMapCB[0x2C] = &CPU::SRA_r;
+	m_instructionMapCB[0x2D] = &CPU::SRA_r;
+	m_instructionMapCB[0x2E] = &CPU::SRA_0xHL;
+	m_instructionMapCB[0x2F] = &CPU::SRA_r;
+
+	// 3x
+	m_instructionMapCB[0x30] = &CPU::SWAP_r;
+	m_instructionMapCB[0x31] = &CPU::SWAP_r;
+	m_instructionMapCB[0x32] = &CPU::SWAP_r;
+	m_instructionMapCB[0x33] = &CPU::SWAP_r;
+	m_instructionMapCB[0x34] = &CPU::SWAP_r;
+	m_instructionMapCB[0x35] = &CPU::SWAP_r;
+	m_instructionMapCB[0x36] = &CPU::SWAP_0xHL;
+	m_instructionMapCB[0x37] = &CPU::SWAP_r;
+	m_instructionMapCB[0x38] = &CPU::SRL_r;
+	m_instructionMapCB[0x39] = &CPU::SRL_r;
+	m_instructionMapCB[0x3A] = &CPU::SRL_r;
+	m_instructionMapCB[0x3B] = &CPU::SRL_r;
+	m_instructionMapCB[0x3C] = &CPU::SRL_r;
+	m_instructionMapCB[0x3D] = &CPU::SRL_r;
+	m_instructionMapCB[0x3E] = &CPU::SRL_0xHL;
+	m_instructionMapCB[0x3F] = &CPU::SRL_r;
+
+	// 4x
+	m_instructionMapCB[0x40] = &CPU::BIT_n_r;
+	m_instructionMapCB[0x41] = &CPU::BIT_n_r;
+	m_instructionMapCB[0x42] = &CPU::BIT_n_r;
+	m_instructionMapCB[0x43] = &CPU::BIT_n_r;
+	m_instructionMapCB[0x44] = &CPU::BIT_n_r;
+	m_instructionMapCB[0x45] = &CPU::BIT_n_r;
+	m_instructionMapCB[0x46] = &CPU::BIT_n_0xHL;
+	m_instructionMapCB[0x47] = &CPU::BIT_n_r;
+	m_instructionMapCB[0x48] = &CPU::BIT_n_r;
+	m_instructionMapCB[0x49] = &CPU::BIT_n_r;
+	m_instructionMapCB[0x4A] = &CPU::BIT_n_r;
+	m_instructionMapCB[0x4B] = &CPU::BIT_n_r;
+	m_instructionMapCB[0x4C] = &CPU::BIT_n_r;
+	m_instructionMapCB[0x4D] = &CPU::BIT_n_r;
+	m_instructionMapCB[0x4E] = &CPU::BIT_n_0xHL;
+	m_instructionMapCB[0x4F] = &CPU::BIT_n_r;
+
+	// 5x
+	m_instructionMapCB[0x50] = &CPU::BIT_n_r;
+	m_instructionMapCB[0x51] = &CPU::BIT_n_r;
+	m_instructionMapCB[0x52] = &CPU::BIT_n_r;
+	m_instructionMapCB[0x53] = &CPU::BIT_n_r;
+	m_instructionMapCB[0x54] = &CPU::BIT_n_r;
+	m_instructionMapCB[0x55] = &CPU::BIT_n_r;
+	m_instructionMapCB[0x56] = &CPU::BIT_n_0xHL;
+	m_instructionMapCB[0x57] = &CPU::BIT_n_r;
+	m_instructionMapCB[0x58] = &CPU::BIT_n_r;
+	m_instructionMapCB[0x59] = &CPU::BIT_n_r;
+	m_instructionMapCB[0x5A] = &CPU::BIT_n_r;
+	m_instructionMapCB[0x5B] = &CPU::BIT_n_r;
+	m_instructionMapCB[0x5C] = &CPU::BIT_n_r;
+	m_instructionMapCB[0x5D] = &CPU::BIT_n_r;
+	m_instructionMapCB[0x5E] = &CPU::BIT_n_0xHL;
+	m_instructionMapCB[0x5F] = &CPU::BIT_n_r;
+
+	// 6x
+	m_instructionMapCB[0x60] = &CPU::BIT_n_r;
+	m_instructionMapCB[0x61] = &CPU::BIT_n_r;
+	m_instructionMapCB[0x62] = &CPU::BIT_n_r;
+	m_instructionMapCB[0x63] = &CPU::BIT_n_r;
+	m_instructionMapCB[0x64] = &CPU::BIT_n_r;
+	m_instructionMapCB[0x65] = &CPU::BIT_n_r;
+	m_instructionMapCB[0x66] = &CPU::BIT_n_0xHL;
+	m_instructionMapCB[0x67] = &CPU::BIT_n_r;
+	m_instructionMapCB[0x68] = &CPU::BIT_n_r;
+	m_instructionMapCB[0x69] = &CPU::BIT_n_r;
+	m_instructionMapCB[0x6A] = &CPU::BIT_n_r;
+	m_instructionMapCB[0x6B] = &CPU::BIT_n_r;
+	m_instructionMapCB[0x6C] = &CPU::BIT_n_r;
+	m_instructionMapCB[0x6D] = &CPU::BIT_n_r;
+	m_instructionMapCB[0x6E] = &CPU::BIT_n_0xHL;
+	m_instructionMapCB[0x6F] = &CPU::BIT_n_r;
+
+	// 7x
+	m_instructionMapCB[0x70] = &CPU::BIT_n_r;
+	m_instructionMapCB[0x71] = &CPU::BIT_n_r;
+	m_instructionMapCB[0x72] = &CPU::BIT_n_r;
+	m_instructionMapCB[0x73] = &CPU::BIT_n_r;
+	m_instructionMapCB[0x74] = &CPU::BIT_n_r;
+	m_instructionMapCB[0x75] = &CPU::BIT_n_r;
+	m_instructionMapCB[0x76] = &CPU::BIT_n_0xHL;
+	m_instructionMapCB[0x77] = &CPU::BIT_n_r;
+	m_instructionMapCB[0x78] = &CPU::BIT_n_r;
+	m_instructionMapCB[0x79] = &CPU::BIT_n_r;
+	m_instructionMapCB[0x7A] = &CPU::BIT_n_r;
+	m_instructionMapCB[0x7B] = &CPU::BIT_n_r;
+	m_instructionMapCB[0x7C] = &CPU::BIT_n_r;
+	m_instructionMapCB[0x7D] = &CPU::BIT_n_r;
+	m_instructionMapCB[0x7E] = &CPU::BIT_n_0xHL;
+	m_instructionMapCB[0x7F] = &CPU::BIT_n_r;
+
+	// 8x
+	m_instructionMapCB[0x80] = &CPU::RES_n_r;
+	m_instructionMapCB[0x81] = &CPU::RES_n_r;
+	m_instructionMapCB[0x82] = &CPU::RES_n_r;
+	m_instructionMapCB[0x83] = &CPU::RES_n_r;
+	m_instructionMapCB[0x84] = &CPU::RES_n_r;
+	m_instructionMapCB[0x85] = &CPU::RES_n_r;
+	m_instructionMapCB[0x86] = &CPU::RES_n_0xHL;
+	m_instructionMapCB[0x87] = &CPU::RES_n_r;
+	m_instructionMapCB[0x88] = &CPU::RES_n_r;
+	m_instructionMapCB[0x89] = &CPU::RES_n_r;
+	m_instructionMapCB[0x8A] = &CPU::RES_n_r;
+	m_instructionMapCB[0x8B] = &CPU::RES_n_r;
+	m_instructionMapCB[0x8C] = &CPU::RES_n_r;
+	m_instructionMapCB[0x8D] = &CPU::RES_n_r;
+	m_instructionMapCB[0x8E] = &CPU::RES_n_0xHL;
+	m_instructionMapCB[0x8F] = &CPU::RES_n_r;
+
+	// 9x
+	m_instructionMapCB[0x90] = &CPU::RES_n_r;
+	m_instructionMapCB[0x91] = &CPU::RES_n_r;
+	m_instructionMapCB[0x92] = &CPU::RES_n_r;
+	m_instructionMapCB[0x93] = &CPU::RES_n_r;
+	m_instructionMapCB[0x94] = &CPU::RES_n_r;
+	m_instructionMapCB[0x95] = &CPU::RES_n_r;
+	m_instructionMapCB[0x96] = &CPU::RES_n_0xHL;
+	m_instructionMapCB[0x97] = &CPU::RES_n_r;
+	m_instructionMapCB[0x98] = &CPU::RES_n_r;
+	m_instructionMapCB[0x99] = &CPU::RES_n_r;
+	m_instructionMapCB[0x9A] = &CPU::RES_n_r;
+	m_instructionMapCB[0x9B] = &CPU::RES_n_r;
+	m_instructionMapCB[0x9C] = &CPU::RES_n_r;
+	m_instructionMapCB[0x9D] = &CPU::RES_n_r;
+	m_instructionMapCB[0x9E] = &CPU::RES_n_0xHL;
+	m_instructionMapCB[0x9F] = &CPU::RES_n_r;
+
+	// Ax
+	m_instructionMapCB[0xA0] = &CPU::RES_n_r;
+	m_instructionMapCB[0xA1] = &CPU::RES_n_r;
+	m_instructionMapCB[0xA2] = &CPU::RES_n_r;
+	m_instructionMapCB[0xA3] = &CPU::RES_n_r;
+	m_instructionMapCB[0xA4] = &CPU::RES_n_r;
+	m_instructionMapCB[0xA5] = &CPU::RES_n_r;
+	m_instructionMapCB[0xA6] = &CPU::RES_n_0xHL;
+	m_instructionMapCB[0xA7] = &CPU::RES_n_r;
+	m_instructionMapCB[0xA8] = &CPU::RES_n_r;
+	m_instructionMapCB[0xA9] = &CPU::RES_n_r;
+	m_instructionMapCB[0xAA] = &CPU::RES_n_r;
+	m_instructionMapCB[0xAB] = &CPU::RES_n_r;
+	m_instructionMapCB[0xAC] = &CPU::RES_n_r;
+	m_instructionMapCB[0xAD] = &CPU::RES_n_r;
+	m_instructionMapCB[0xAE] = &CPU::RES_n_0xHL;
+	m_instructionMapCB[0xAF] = &CPU::RES_n_r;
+
+	// Bx
+	m_instructionMapCB[0xB0] = &CPU::RES_n_r;
+	m_instructionMapCB[0xB1] = &CPU::RES_n_r;
+	m_instructionMapCB[0xB2] = &CPU::RES_n_r;
+	m_instructionMapCB[0xB3] = &CPU::RES_n_r;
+	m_instructionMapCB[0xB4] = &CPU::RES_n_r;
+	m_instructionMapCB[0xB5] = &CPU::RES_n_r;
+	m_instructionMapCB[0xB6] = &CPU::RES_n_0xHL;
+	m_instructionMapCB[0xB7] = &CPU::RES_n_r;
+	m_instructionMapCB[0xB8] = &CPU::RES_n_r;
+	m_instructionMapCB[0xB9] = &CPU::RES_n_r;
+	m_instructionMapCB[0xBA] = &CPU::RES_n_r;
+	m_instructionMapCB[0xBB] = &CPU::RES_n_r;
+	m_instructionMapCB[0xBC] = &CPU::RES_n_r;
+	m_instructionMapCB[0xBD] = &CPU::RES_n_r;
+	m_instructionMapCB[0xBE] = &CPU::RES_n_0xHL;
+	m_instructionMapCB[0xBF] = &CPU::RES_n_r;
+
+	// Cx
+	m_instructionMapCB[0xC0] = &CPU::SET_n_r;
+	m_instructionMapCB[0xC1] = &CPU::SET_n_r;
+	m_instructionMapCB[0xC2] = &CPU::SET_n_r;
+	m_instructionMapCB[0xC3] = &CPU::SET_n_r;
+	m_instructionMapCB[0xC4] = &CPU::SET_n_r;
+	m_instructionMapCB[0xC5] = &CPU::SET_n_r;
+	m_instructionMapCB[0xC6] = &CPU::SET_n_0xHL;
+	m_instructionMapCB[0xC7] = &CPU::SET_n_r;
+	m_instructionMapCB[0xC8] = &CPU::SET_n_r;
+	m_instructionMapCB[0xC9] = &CPU::SET_n_r;
+	m_instructionMapCB[0xCA] = &CPU::SET_n_r;
+	m_instructionMapCB[0xCB] = &CPU::SET_n_r;
+	m_instructionMapCB[0xCC] = &CPU::SET_n_r;
+	m_instructionMapCB[0xCD] = &CPU::SET_n_r;
+	m_instructionMapCB[0xCE] = &CPU::SET_n_0xHL;
+	m_instructionMapCB[0xCF] = &CPU::SET_n_r;
+
+	// Dx
+	m_instructionMapCB[0xD0] = &CPU::SET_n_r;
+	m_instructionMapCB[0xD1] = &CPU::SET_n_r;
+	m_instructionMapCB[0xD2] = &CPU::SET_n_r;
+	m_instructionMapCB[0xD3] = &CPU::SET_n_r;
+	m_instructionMapCB[0xD4] = &CPU::SET_n_r;
+	m_instructionMapCB[0xD5] = &CPU::SET_n_r;
+	m_instructionMapCB[0xD6] = &CPU::SET_n_0xHL;
+	m_instructionMapCB[0xD7] = &CPU::SET_n_r;
+	m_instructionMapCB[0xD8] = &CPU::SET_n_r;
+	m_instructionMapCB[0xD9] = &CPU::SET_n_r;
+	m_instructionMapCB[0xDA] = &CPU::SET_n_r;
+	m_instructionMapCB[0xDB] = &CPU::SET_n_r;
+	m_instructionMapCB[0xDC] = &CPU::SET_n_r;
+	m_instructionMapCB[0xDD] = &CPU::SET_n_r;
+	m_instructionMapCB[0xDE] = &CPU::SET_n_0xHL;
+	m_instructionMapCB[0xDF] = &CPU::SET_n_r;
+
+	// Ex
+	m_instructionMapCB[0xE0] = &CPU::SET_n_r;
+	m_instructionMapCB[0xE1] = &CPU::SET_n_r;
+	m_instructionMapCB[0xE2] = &CPU::SET_n_r;
+	m_instructionMapCB[0xE3] = &CPU::SET_n_r;
+	m_instructionMapCB[0xE4] = &CPU::SET_n_r;
+	m_instructionMapCB[0xE5] = &CPU::SET_n_r;
+	m_instructionMapCB[0xE6] = &CPU::SET_n_0xHL;
+	m_instructionMapCB[0xE7] = &CPU::SET_n_r;
+	m_instructionMapCB[0xE8] = &CPU::SET_n_r;
+	m_instructionMapCB[0xE9] = &CPU::SET_n_r;
+	m_instructionMapCB[0xEA] = &CPU::SET_n_r;
+	m_instructionMapCB[0xEB] = &CPU::SET_n_r;
+	m_instructionMapCB[0xEC] = &CPU::SET_n_r;
+	m_instructionMapCB[0xED] = &CPU::SET_n_r;
+	m_instructionMapCB[0xEE] = &CPU::SET_n_0xHL;
+	m_instructionMapCB[0xEF] = &CPU::SET_n_r;
+
+	// Fx
+	m_instructionMapCB[0xF0] = &CPU::SET_n_r;
+	m_instructionMapCB[0xF1] = &CPU::SET_n_r;
+	m_instructionMapCB[0xF2] = &CPU::SET_n_r;
+	m_instructionMapCB[0xF3] = &CPU::SET_n_r;
+	m_instructionMapCB[0xF4] = &CPU::SET_n_r;
+	m_instructionMapCB[0xF5] = &CPU::SET_n_r;
+	m_instructionMapCB[0xF6] = &CPU::SET_n_0xHL;
+	m_instructionMapCB[0xF7] = &CPU::SET_n_r;
+	m_instructionMapCB[0xF8] = &CPU::SET_n_r;
+	m_instructionMapCB[0xF9] = &CPU::SET_n_r;
+	m_instructionMapCB[0xFA] = &CPU::SET_n_r;
+	m_instructionMapCB[0xFB] = &CPU::SET_n_r;
+	m_instructionMapCB[0xFC] = &CPU::SET_n_r;
+	m_instructionMapCB[0xFD] = &CPU::SET_n_r;
+	m_instructionMapCB[0xFE] = &CPU::SET_n_0xHL;
+	m_instructionMapCB[0xFF] = &CPU::SET_n_r;
 }
 
 byte* CPU::GetByteRegister_Src(byte opcode)
@@ -673,6 +1241,14 @@ ulong CPU::LDD_A_0xHL(byte opcode)
 	m_HL--;
 
 	return 8;
+}
+
+ulong CPU::LD_0xnn_SP(byte opcode)
+{
+	ushort nn = ReadUShortPCI();
+	m_MMU->WriteUShort(nn, m_SP);
+
+	return 20;
 }
 
 ulong CPU::LD_rr_nn(byte opcode)

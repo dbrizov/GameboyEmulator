@@ -241,6 +241,9 @@ private:
 	// 16bit load instruction
 	// =======================
 
+	/** Load SP into address (nn) */
+	ulong LD_0xnn_SP(byte opcode);
+
 	/** Load ushort nn into 16bit register rr */
 	ulong LD_rr_nn(byte opcode);
 
