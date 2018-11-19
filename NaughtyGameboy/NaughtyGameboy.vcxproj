@@ -255,6 +255,16 @@
     <None Include="Libs\SDL2-2.0.9\include\SDL_config.h.cmake" />
     <None Include="Libs\SDL2-2.0.9\include\SDL_config.h.in" />
     <None Include="Libs\SDL2-2.0.9\include\SDL_config_macosx.h.orig" />
+    <None Include="Libs\SDL2-2.0.9\lib\x64\SDL2.dll" />
+    <None Include="Libs\SDL2-2.0.9\lib\x86\SDL2.dll" />
+  </ItemGroup>
+  <ItemGroup>
+    <Library Include="Libs\SDL2-2.0.9\lib\x64\SDL2.lib" />
+    <Library Include="Libs\SDL2-2.0.9\lib\x64\SDL2main.lib" />
+    <Library Include="Libs\SDL2-2.0.9\lib\x64\SDL2test.lib" />
+    <Library Include="Libs\SDL2-2.0.9\lib\x86\SDL2.lib" />
+    <Library Include="Libs\SDL2-2.0.9\lib\x86\SDL2main.lib" />
+    <Library Include="Libs\SDL2-2.0.9\lib\x86\SDL2test.lib" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
