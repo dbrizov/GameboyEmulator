@@ -1,2 +1,1 @@
-# NaughtyGameboy
-Gameboy Emulator
+# Gameboy Emulator
